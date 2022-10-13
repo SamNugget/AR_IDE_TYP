@@ -1,0 +1,1 @@
+# AR_IDE_TYP
