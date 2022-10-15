@@ -6,7 +6,9 @@ using TMPro;
 public class Window2D : MonoBehaviour
 {
     [SerializeField] private TextMeshPro textBox;
-    private List<Block> blocks;
+    //private List<Block> blocks;
+
+
 
     private float width = 1f;
     private float height = 1f;
