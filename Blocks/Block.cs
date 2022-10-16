@@ -29,22 +29,21 @@ public class Block : MonoBehaviour
             //Debug.Log("line " + sL + " of " + blockType.getName() + " has " + splitLines[sL].Length + " splits");
             string newLine = "";
 
-            if (splitLines[sL].Length == 1)
+            if (splitLines[sL].Length == 1) // no subblocks on this line
             {
                 newLine += splitLines[sL][0];
             }
-            else
+            else // sub blocks on this line
             {
                 int stringPos = 0;
                 for (int i = 0; i < splitLines[sL].Length; i++)
                 {
+                    //TODO: assumes {} only comes in between strings
                     newLine += splitLines[sL][i];
+                    stringPos += splitLines[sL][i].Length;
 
                     if (i + 1 < splitLines[sL].Length)
                     {
-                        stringPos += splitLines[sL][i].Length;
-
-
                         // spawn subblock
                         Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
 
@@ -57,11 +56,11 @@ public class Block : MonoBehaviour
                         newLine += result;
                         subBlocks.Add(subBlockScript);
 
-                        extraLines += getLineCount(result) - 1;
-
                         Vector3 pos = FontManager.lettersAndLinesToVector(stringPos, sL + extraLines);
                         pos.y = -pos.y; pos.z = -0.01f;
                         subBlock.localPosition = pos;
+
+                        extraLines += getLineCount(result);
                     }
                 }
             }
@@ -83,13 +82,13 @@ public class Block : MonoBehaviour
 
 
         // scale
-        Vector3 scale = FontManager.lettersAndLinesToVector(getMaxLettersPerLine(blockText), getLineCount(bodyText.text));
-        Debug.Log(blockType.getName());
-        byte[] bytes = Encoding.ASCII.GetBytes(blockText);
+        Vector3 scale = FontManager.lettersAndLinesToVector(getMaxLettersPerLine(blockText), getLineCount(blockText));
+        //Debug.Log(blockType.getName());
+        /*byte[] bytes = Encoding.ASCII.GetBytes(blockText);
         foreach (byte b in bytes)
         {
             Debug.Log(b);
-        }
+        }*/
         scale.z = 1f;
         transform.GetChild(1).localScale = scale;
 
@@ -119,8 +118,7 @@ public class Block : MonoBehaviour
             do
             {
                 i = line.IndexOf("{}", i + 2);
-                if (i >= 0)
-                    subBlockPositions.Add(i);
+                if (i >= 0) subBlockPositions.Add(i);
             }
             while (i >= 0);
 
@@ -152,11 +150,15 @@ public class Block : MonoBehaviour
 
     private static int getLineCount(string text)
     {
+        text = string.Copy(text);
+
         return text.Split('\n').Length;
     }
 
     private static int getMaxLettersPerLine(string text)
     {
+        text = string.Copy(text);
+
         string[] split = text.Split('\n');
         if (split.Length <= 1)
             return text.Length;
