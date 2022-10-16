@@ -10,10 +10,13 @@ public class Window2D : Block
     [SerializeField] private float width = 1f;
     [SerializeField] private float height = 1f;
 
+
+
     public override string initialise(BlockManager.BlockType blockType, int offsetX = 0, List<BlockManager.BlockType> subBlockTypes = null)
     {
         this.blockType = null;
         this.subBlocks = new List<Block>();
+        highlightable = false;
 
         // spawn subblock - currently only works for one
         Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
@@ -74,6 +77,10 @@ public class Window2D : Block
         tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
         tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
         tB.localPosition = new Vector3(w / 2f, -h / 2f, topText.localPosition.z);
+
+
+
+        checkSubBlockSize(new Vector2(transform.position.x + width, transform.position.y - height));
     }
 
     public string getCode()

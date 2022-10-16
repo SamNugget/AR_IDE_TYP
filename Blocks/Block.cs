@@ -8,7 +8,18 @@ using System.Text;
 public class Block : MonoBehaviour
 {
     protected BlockManager.BlockType blockType;
-    protected List<Block> subBlocks;
+    protected List<Block> subBlocks = null;
+    public List<Block> getSubBlocks()
+    {
+        return subBlocks;
+    }
+    protected bool highlightable;
+    public bool getHighlightable()
+    {
+        return highlightable;
+    }
+
+
 
     // the block has been spawned in the correct pos
     // now we need to scale, populate with text, and fill with sub-blocks
@@ -16,6 +27,7 @@ public class Block : MonoBehaviour
     {
         this.blockType = blockType;
         this.subBlocks = new List<Block>();
+        highlightable = true;
 
 
 
@@ -47,7 +59,11 @@ public class Block : MonoBehaviour
                         Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
 
                         BlockManager.BlockType subBlockType;
-                        if (subBlockTypes == null) subBlockType = BlockManager.singleton.getBlockType(0); // empty
+                        if (subBlockTypes == null)
+                        {
+                            subBlockType = BlockManager.singleton.getBlockType(0); // empty
+                            //subBlock.GetChild(0).GetChild(0).gameObject.layer = 8;
+                        }
                         else subBlockType = subBlockTypes[subBlocks.Count];
 
                         Block subBlockScript = subBlock.GetComponent<Block>();
@@ -80,6 +96,20 @@ public class Block : MonoBehaviour
 
 
         return blockText;
+    }
+
+    public void checkSubBlockSize(Vector2 max)
+    {
+        foreach (Block sB in subBlocks)
+        {
+            sB.checkSubBlockSize(max);
+            Vector3 pos = sB.transform.position;
+            Vector3 scale = sB.transform.GetChild(0).localScale;
+            if (pos.x + scale.x > max.x || pos.y - scale.y < max.y)
+                sB.transform.GetChild(0).gameObject.SetActive(false);
+            else
+                sB.transform.GetChild(0).gameObject.SetActive(true);
+        }
     }
 
     private static List<string[]> getSplitLines(BlockManager.BlockType blockType)
