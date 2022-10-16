@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+using System.Text;
+
 public class Block : MonoBehaviour
 {
     private BlockManager.BlockType blockType;
@@ -10,7 +12,7 @@ public class Block : MonoBehaviour
 
     // the block has been spawned in the correct pos
     // now we need to scale, populate with text, and fill with sub-blocks
-    public void initialise(BlockManager.BlockType blockType, List<BlockManager.BlockType> subBlockTypes = null)
+    public string initialise(BlockManager.BlockType blockType, int offsetX = 0, List<BlockManager.BlockType> subBlockTypes = null)
     {
         this.blockType = blockType;
         this.subBlocks = new List<Block>();
@@ -20,20 +22,16 @@ public class Block : MonoBehaviour
         // populate with text
         List<string[]> splitLines = getSplitLines(blockType);
         string blockText = "";
-
-        if (subBlockTypes == null)
-        {
-            BlockManager.singleton.getBlockType(0);
-        }
-
         int extraLines = 0;
+
         for (int sL = 0; sL < splitLines.Count; sL++)
         {
+            //Debug.Log("line " + sL + " of " + blockType.getName() + " has " + splitLines[sL].Length + " splits");
             string newLine = "";
 
             if (splitLines[sL].Length == 1)
             {
-                newLine += splitLines[sL][0] + "\n";
+                newLine += splitLines[sL][0];
             }
             else
             {
@@ -41,6 +39,7 @@ public class Block : MonoBehaviour
                 for (int i = 0; i < splitLines[sL].Length; i++)
                 {
                     newLine += splitLines[sL][i];
+
                     if (i + 1 < splitLines[sL].Length)
                     {
                         stringPos += splitLines[sL][i].Length;
@@ -54,40 +53,50 @@ public class Block : MonoBehaviour
                         else subBlockType = subBlockTypes[subBlocks.Count];
 
                         Block subBlockScript = subBlock.GetComponent<Block>();
-                        subBlockScript.initialise(subBlockType);
+                        string result = subBlockScript.initialise(subBlockType, offsetX + stringPos);
+                        newLine += result;
                         subBlocks.Add(subBlockScript);
+
+                        extraLines += getLineCount(result) - 1;
 
                         Vector3 pos = FontManager.lettersAndLinesToVector(stringPos, sL + extraLines);
                         pos.y = -pos.y; pos.z = -0.01f;
                         subBlock.localPosition = pos;
-
-
-                        for (int j = 0; j < subBlockScript.getLineCount() - 1; j++)
-                        {
-                            newLine += "\n"; extraLines++;
-                        }
-                        int noOfSpaces = subBlockScript.getMaxLettersPerLine();
-                        if (subBlockScript.getLineCount() > 1) noOfSpaces += stringPos;
-                        for (int j = 0; j < noOfSpaces; j++)
-                            newLine += " ";
                     }
                 }
-                newLine += "\n";
             }
 
+            if (sL + 1 < splitLines.Count) newLine += '\n' + new string(' ', offsetX);
             blockText += newLine;
         }
 
         TextMeshPro bodyText = transform.GetChild(0).GetComponent<TextMeshPro>();
-        bodyText.text = blockText;
+        if (transform.parent == null || transform.parent.GetComponent<Block>() == null)
+        {
+            bodyText.text = blockText;
+        }
+        else
+        {
+            bodyText.text = "";
+        }
 
 
 
         // scale
-        //BlockManager.BlockType thisBlockType = BlockManager.singleton.getBlockType(blockTypeIndex);
-        Vector3 scale = FontManager.lettersAndLinesToVector(getMaxLettersPerLine(), splitLines.Count + extraLines); // -1 removes \n
+        Vector3 scale = FontManager.lettersAndLinesToVector(getMaxLettersPerLine(blockText), getLineCount(bodyText.text));
+        Debug.Log(blockType.getName());
+        byte[] bytes = Encoding.ASCII.GetBytes(blockText);
+        foreach (byte b in bytes)
+        {
+            Debug.Log(b);
+        }
         scale.z = 1f;
         transform.GetChild(1).localScale = scale;
+
+
+
+        Debug.Log(blockText);
+        return blockText;
     }
 
     public string ToString()
@@ -141,33 +150,20 @@ public class Block : MonoBehaviour
         return splitLines;
     }
 
-    public int getLineCount()
+    private static int getLineCount(string text)
     {
-        TextMeshPro bodyText = transform.GetChild(0).GetComponent<TextMeshPro>();
-        int i = 0;
-        int nPos = -1;
-        do
-        {
-            nPos = bodyText.text.IndexOf('\n', nPos + 1);
-            if (nPos >= 0) i++;
-        }
-        while (nPos >= 0);
-        return i;
+        return text.Split('\n').Length;
     }
 
-    public int getMaxLettersPerLine()
+    private static int getMaxLettersPerLine(string text)
     {
-        TextMeshPro bodyText = transform.GetChild(0).GetComponent<TextMeshPro>();
+        string[] split = text.Split('\n');
+        if (split.Length <= 1)
+            return text.Length;
+
         int max = 0;
-        int nPos = -1;
-        do
-        {
-            int tempNPos = bodyText.text.IndexOf('\n', nPos + 1);
-            if (tempNPos - (nPos + 1) > max) max = tempNPos - (nPos + 1);
-            nPos = tempNPos;
-        }
-        while (nPos >= 0);
-        Debug.Log("this blocktype " + blockType.getName() + " has max letters per line: " + max);
+        foreach (string s in split)
+            if (s.Length > max) max = s.Length;
         return max;
     }
 }
