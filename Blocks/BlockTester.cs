@@ -8,7 +8,6 @@ public class BlockTester : MonoBehaviour
     {
         List<BlockManager.BlockType> bTs = new List<BlockManager.BlockType>();
         bTs.Add(BlockManager.singleton.getBlockType(2));
-        bTs.Add(BlockManager.singleton.getBlockType(2));
-        GetComponent<Block>().initialise(BlockManager.singleton.getBlockType(2), 0, bTs);
+        GetComponent<Block>().initialise(null, 0, bTs);
     }
 }
