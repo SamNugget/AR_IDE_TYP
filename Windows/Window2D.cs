@@ -10,22 +10,34 @@ public class Window2D : Block
     [SerializeField] private float width = 1f;
     [SerializeField] private float height = 1f;
 
+    private int nonBlockChildren = -1;
 
 
-    public override string initialise(BlockManager.BlockType blockType, int offsetX = 0, List<BlockManager.BlockType> subBlockTypes = null)
+
+    public override string initialise(int blockType, int offsetX = 0, int[] subBlockTypes = null)
     {
         this.blockType = null;
         this.subBlocks = new List<Block>();
         highlightable = false;
 
+        if (nonBlockChildren < 0)
+        {
+            nonBlockChildren = transform.childCount;
+        }
+        else
+        {
+            while (transform.childCount > nonBlockChildren)
+                Destroy(transform.GetChild(transform.childCount - 1));
+        }
+
+
+
         // spawn subblock - currently only works for one
         Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
         Block subBlockScript = subBlock.GetComponent<Block>();
         // TEMP
-        List<BlockManager.BlockType> bTs = new List<BlockManager.BlockType>();
-        bTs.Add(BlockManager.singleton.getBlockType(1));
-        bTs.Add(BlockManager.singleton.getBlockType(2));
-        string result = subBlockScript.initialise(subBlockTypes[0], 0, bTs);
+        int[] types = new int[] { 1, 2 };
+        string result = subBlockScript.initialise(3, 0, types);
         // TEMP END
         subBlocks.Add(subBlockScript);
         subBlock.localPosition = new Vector3(0f, 0f, -0.001f);

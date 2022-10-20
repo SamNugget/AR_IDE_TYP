@@ -8,11 +8,7 @@ using System.Text;
 public class Block : MonoBehaviour
 {
     protected BlockManager.BlockType blockType;
-    protected List<Block> subBlocks = null;
-    public List<Block> getSubBlocks()
-    {
-        return subBlocks;
-    }
+    public List<Block> subBlocks = null;
     protected bool highlightable;
     public bool getHighlightable()
     {
@@ -23,16 +19,20 @@ public class Block : MonoBehaviour
 
     // the block has been spawned in the correct pos
     // now we need to scale, populate with text, and fill with sub-blocks
-    public virtual string initialise(BlockManager.BlockType blockType, int offsetX = 0, List<BlockManager.BlockType> subBlockTypes = null)
+    public virtual string initialise(int blockType, int offsetX = 0, int[] subBlockTypes = null)
     {
-        this.blockType = blockType;
+        this.blockType = BlockManager.singleton.getBlockType(blockType);
         this.subBlocks = new List<Block>();
         highlightable = true;
 
 
 
+        if (blockType == 0) transform.GetChild(0).GetChild(0).gameObject.layer = 8;
+
+
+
         // populate with text
-        List<string[]> splitLines = getSplitLines(blockType);
+        List<string[]> splitLines = getSplitLines(this.blockType);
         string blockText = "";
         int extraLines = 0;
 
@@ -58,13 +58,7 @@ public class Block : MonoBehaviour
                         // spawn subblock
                         Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
 
-                        BlockManager.BlockType subBlockType;
-                        if (subBlockTypes == null)
-                        {
-                            subBlockType = BlockManager.singleton.getBlockType(0); // empty
-                            //subBlock.GetChild(0).GetChild(0).gameObject.layer = 8;
-                        }
-                        else subBlockType = subBlockTypes[subBlocks.Count];
+                        int subBlockType = (subBlockTypes == null ? 0 : subBlockTypes[subBlocks.Count]);
 
                         Block subBlockScript = subBlock.GetComponent<Block>();
                         string result = subBlockScript.initialise(subBlockType, stringPos);
@@ -96,6 +90,11 @@ public class Block : MonoBehaviour
 
 
         return blockText;
+    }
+
+    public string getCode(int currentX, int currentY)
+    {
+        return "";
     }
 
     public void checkSubBlockSize(Vector2 max)
@@ -177,5 +176,18 @@ public class Block : MonoBehaviour
         }
 
         return max;
+    }
+
+    public Block getParent()
+    {
+        return transform.parent.GetComponent<Block>();
+    }
+
+    public Window2D getWindow2D()
+    {
+        Block current = this;
+        while (current is Window2D)
+            current = current.getParent();
+        return (Window2D)current;
     }
 }

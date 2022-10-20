@@ -22,7 +22,8 @@ public class ClickManager : MonoBehaviour
         }
     }
 
-    RaycastHit lastHit;
+    private RaycastHit lastHit;
+    private int currentBlockTypeIndex = 1;
     void Update()
     {
         Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
@@ -36,7 +37,15 @@ public class ClickManager : MonoBehaviour
                 switch (layerName)
                 {
                     case "Empty2D":
-                        Debug.Log("Spawn block");
+                        Debug.Log("spawn");
+                        Block hitBlock = hit.transform.parent.parent.GetComponent<Block>();
+                        Block parent = hitBlock.getParent();
+                        int indexOfBlock = parent.subBlocks.IndexOf(hitBlock);
+                        Destroy(hitBlock.gameObject);
+
+                        Block newBlock = Instantiate(BlockManager.blockFab, parent.transform).GetComponent<Block>();
+                        newBlock.initialise(currentBlockTypeIndex);
+                        parent.subBlocks[indexOfBlock] = newBlock;
                         break;
                 }
             }
@@ -55,6 +64,7 @@ public class ClickManager : MonoBehaviour
             {
                 switch (layerName)
                 {
+                    case "Empty2D":
                     case "Block2D":
                         hit.transform.GetComponent<MeshRenderer>().enabled = true;
                         break;
@@ -75,11 +85,15 @@ public class ClickManager : MonoBehaviour
 
     private void hideLastHit()
     {
-        if (lastHit.transform != null && string.Equals(getHitLayerName(lastHit.transform.gameObject.layer), "Block2D"))
+        if (lastHit.transform != null)
         {
-            Block b = lastHit.transform.parent.parent.GetComponent<Block>();
-            if (b != null && b.getHighlightable())
-                lastHit.transform.GetComponent<MeshRenderer>().enabled = false;
+            string layerName = getHitLayerName(lastHit.transform.gameObject.layer);
+            if (string.Equals(layerName, "Block2D") || string.Equals(layerName, "Empty2D"))
+            {
+                Block b = lastHit.transform.parent.parent.GetComponent<Block>();
+                if (b != null && b.getHighlightable())
+                    lastHit.transform.GetComponent<MeshRenderer>().enabled = false;
+            }
         }
     }
 
@@ -95,5 +109,10 @@ public class ClickManager : MonoBehaviour
             }
         }
         return layerName;
+    }
+
+    public void setCurrentBlockTypeIndex(int index)
+    {
+        currentBlockTypeIndex = index;
     }
 }
