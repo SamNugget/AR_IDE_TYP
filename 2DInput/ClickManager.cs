@@ -31,21 +31,16 @@ public class ClickManager : MonoBehaviour
         {
             int layerHit = hit.transform.gameObject.layer;
             string layerName = getHitLayerName(layerHit);
+            Debug.Log(layerName);
 
             if (Input.GetMouseButtonDown(0))
             {
                 switch (layerName)
                 {
                     case "Empty2D":
-                        Debug.Log("spawn");
+                        Debug.Log("SPAWN");
                         Block hitBlock = hit.transform.parent.parent.GetComponent<Block>();
-                        Block parent = hitBlock.getParent();
-                        int indexOfBlock = parent.subBlocks.IndexOf(hitBlock);
-                        Destroy(hitBlock.gameObject);
-
-                        Block newBlock = Instantiate(BlockManager.blockFab, parent.transform).GetComponent<Block>();
-                        newBlock.initialise(currentBlockTypeIndex);
-                        parent.subBlocks[indexOfBlock] = newBlock;
+                        BlockManager.spawnBlock(currentBlockTypeIndex, hitBlock);
                         break;
                 }
             }

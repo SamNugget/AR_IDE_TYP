@@ -8,7 +8,17 @@ using System.Text;
 public class Block : MonoBehaviour
 {
     protected BlockManager.BlockType blockType;
-    public List<Block> subBlocks = null;
+    public List<Block> subBlocks = null; // TODO: make private
+
+    [SerializeField] protected int width; // TODO: rm sf
+    public int getWidth() { return width; }
+    [SerializeField] protected int height; // TODO: rm sf
+    public int getHeight() { return height; }
+    protected int[,] subBlockPositions;
+
+    [SerializeField] private TextMeshPro textBox;
+
+    // this needs to go
     protected bool highlightable;
     public bool getHighlightable()
     {
@@ -17,9 +27,7 @@ public class Block : MonoBehaviour
 
 
 
-    // the block has been spawned in the correct pos
-    // now we need to scale, populate with text, and fill with sub-blocks
-    public virtual string initialise(int blockType, int offsetX = 0, int[] subBlockTypes = null)
+    public virtual void initialise(int blockType, int[] subBlockTypes = null)
     {
         this.blockType = BlockManager.singleton.getBlockType(blockType);
         this.subBlocks = new List<Block>();
@@ -27,155 +35,152 @@ public class Block : MonoBehaviour
 
 
 
-        if (blockType == 0) transform.GetChild(0).GetChild(0).gameObject.layer = 8;
-
-
-
-        // populate with text
-        List<string[]> splitLines = getSplitLines(this.blockType);
-        string blockText = "";
-        int extraLines = 0;
-
-        for (int sL = 0; sL < splitLines.Count; sL++)
+        if (subBlockTypes == null)
         {
-            string newLine = "";
-
-            if (splitLines[sL].Length == 1) // no subblocks on this line
-            {
-                newLine += splitLines[sL][0];
-            }
-            else // sub blocks on this line
-            {
-                int stringPos = offsetX;
-                for (int i = 0; i < splitLines[sL].Length; i++)
-                {
-                    //TODO: assumes {} only comes in between strings
-                    newLine += splitLines[sL][i];
-                    stringPos += splitLines[sL][i].Length;
-
-                    if (i + 1 < splitLines[sL].Length)
-                    {
-                        // spawn subblock
-                        Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
-
-                        int subBlockType = (subBlockTypes == null ? 0 : subBlockTypes[subBlocks.Count]);
-
-                        Block subBlockScript = subBlock.GetComponent<Block>();
-                        string result = subBlockScript.initialise(subBlockType, stringPos);
-                        newLine += result;
-                        subBlocks.Add(subBlockScript);
-
-                        Vector3 pos = FontManager.lettersAndLinesToVector(stringPos - offsetX, sL + extraLines);
-                        pos.y = -pos.y; pos.z = -0.001f;
-                        subBlock.localPosition = pos;
-
-                        int lines = getLineCount(result) - 1;
-                        extraLines += lines;
-                        if (lines > 1) stringPos = 0;
-                    }
-                }
-            }
-
-            if (sL + 1 < splitLines.Count) newLine += '\n' + new string(' ', offsetX);
-            blockText += newLine;
+            subBlockTypes = new int[this.blockType.getSubBlockCount()]; // assumes all values zero
+        }
+        else if (subBlockTypes.Length != this.blockType.getSubBlockCount())
+        {
+            Debug.Log("Block initialised with an incorrect subBlockTypes Array");
+            subBlockTypes = new int[this.blockType.getSubBlockCount()]; // assumes all values zero
         }
 
 
 
-        // scale
-        Vector3 scale = FontManager.lettersAndLinesToVector(getMaxLettersPerLine(blockText, offsetX), getLineCount(blockText));
-        scale.z = 1f;
-        transform.GetChild(0).localScale = scale;
-
-
-
-        return blockText;
-    }
-
-    public string getCode(int currentX, int currentY)
-    {
-        return "";
-    }
-
-    public void checkSubBlockSize(Vector2 max)
-    {
-        foreach (Block sB in subBlocks)
+        // if empty block, change layer. TODO: change this
+        if (blockType == 0)
         {
-            sB.checkSubBlockSize(max);
-            Vector3 pos = sB.transform.position;
-            Vector3 scale = sB.transform.GetChild(0).localScale;
-            if (pos.x + scale.x > max.x || pos.y - scale.y < max.y)
-                sB.transform.GetChild(0).gameObject.SetActive(false);
-            else
-                sB.transform.GetChild(0).gameObject.SetActive(true);
+            transform.GetChild(0).GetChild(0).gameObject.layer = 8;
+            transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material = BlockManager.singleton.emptyMat;
+        }
+
+
+
+        // spawn all sub blocks
+        foreach (int s in subBlockTypes)
+        {
+            Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
+            Block subBlockScript = subBlock.GetComponent<Block>();
+            subBlockScript.initialise(s);
+            subBlocks.Add(subBlockScript);
         }
     }
 
-    private static List<string[]> getSplitLines(BlockManager.BlockType blockType)
+    public void drawBlock()
     {
+        foreach (Block subBlock in subBlocks)
+            subBlock.drawBlock();
+
+        populateTextBox();
+        resizeBlock();
+    }
+
+    // fills text box with text, updates width and height, and moves subblocks
+    public virtual void populateTextBox()
+    {
+        width = blockType.getWidth();
+        height = blockType.getHeight();
+        int extraHeight = 0;
+
         string[] lines = blockType.getLines();
-        List<string[]> splitLines = new List<string[]>();
+        int[,] subBlockPositions = blockType.getSubBlockPositions();
 
+        for (int i = 0; i < subBlockPositions.GetLength(0); i++)
+        {
+            int currentLine = subBlockPositions[i, 0];
+            Debug.Log(blockType.getName() + ": " + lines[currentLine]);
+            int posInLine = subBlockPositions[i, 1];
+
+            // split line into two strings, one before @ and one after @
+            string before = lines[currentLine].Substring(0, posInLine);
+            string after = lines[currentLine].Substring(posInLine + 1);
+
+            // create a blank area which subblocks[i] will be on top
+            // if this is a multi-line block
+            string newLine = before + new string(' ', subBlocks[i].getWidth()) + after;
+            if (subBlocks[i].getHeight() > 1)
+            {
+                lines[currentLine] = new string('\n', subBlocks[i].getHeight() - 1) + newLine;
+            }
+            // if this is a single-line block
+            else
+            {
+                // e.g.,             "    " + "\n\n        " + ";"
+                lines[currentLine] = newLine;
+            }
+
+
+
+            // move subblock
+            Vector3 sBP = FontManager.lettersAndLinesToVector(posInLine, -(currentLine + extraHeight));
+            sBP.z = subBlocks[i].transform.localPosition.z;
+            subBlocks[i].transform.localPosition = sBP;
+
+            // update width and height
+            if (lines[currentLine].IndexOf('\n') >= 0)
+            {
+                // increment height
+                extraHeight += (subBlocks[i].getHeight() - 1);
+
+                // compute width
+                string[] split = lines[currentLine].Split('\n');
+                foreach (string s in split)
+                    if (s.Length > width) width = s.Length;
+            }
+            else
+            {
+                // compute width
+                if (lines[currentLine].Length > width)
+                    width = lines[currentLine].Length;
+            }
+
+
+            // if we need to insert another block on this line, recalculate block positions
+            if (i + 1 < subBlockPositions.GetLength(0) && subBlockPositions[i + 1, 0] == currentLine)
+                subBlockPositions = BlockManager.getSubBlockPositions(lines);
+        }
+        height += extraHeight;
+
+
+        // flatten into a single string
+        string text = "";
         foreach (string line in lines)
         {
-            List<int> subBlockPositions = new List<int>();
-            int i = -2;
-            do
-            {
-                i = line.IndexOf("{}", i + 2);
-                if (i >= 0) subBlockPositions.Add(i);
-            }
-            while (i >= 0);
-
-
-            if (subBlockPositions.Count == 0)
-            {
-                splitLines.Add(new string[] { line });
-            }
-            else
-            {
-                List<string> sL = new List<string>();
-
-                int stringPos = 0;
-                for (int j = 0; j < subBlockPositions.Count; j++)
-                {
-                    int len = subBlockPositions[j] - stringPos;
-                    sL.Add(line.Substring(stringPos, len));
-
-                    stringPos = subBlockPositions[j] + 2;
-                }
-                sL.Add(line.Substring(stringPos));
-
-                splitLines.Add(sL.ToArray());
-            }
+            text += line;
+            if (line != lines[lines.Length - 1]) text += '\n';
         }
-
-        return splitLines;
+        textBox.text = text;
     }
 
-    private static int getLineCount(string text)
+    // resizes this block
+    public virtual void resizeBlock()
     {
-        text = string.Copy(text);
+        Vector2 planeSize = FontManager.lettersAndLinesToVector(width, height);
 
-        return text.Split('\n').Length;
+        // body plane
+        Transform body = transform.GetChild(0);
+        body.localScale = new Vector3(planeSize.x, planeSize.y, 1f);
+
+        // body text
+        RectTransform tB = (RectTransform)textBox.transform;
+        tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, planeSize.x);
+        tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, planeSize.y);
+        tB.localPosition = new Vector3(planeSize.x / 2f, -planeSize.y / 2f, tB.localPosition.z);
     }
 
-    private static int getMaxLettersPerLine(string text, int offsetX)
+    public int getSubBlockIndex(Block b)
     {
-        text = string.Copy(text);
+        return subBlocks.IndexOf(b);
+    }
 
-        string[] split = text.Split('\n');
-        if (split.Length <= 1)
-            return text.Length;
+    public void replaceSubBlock(Block b, int index)
+    {
+        subBlocks[index] = b;
+    }
 
-        int max = 0;
-        for (int i = 0; i < split.Length; i++)
-        {
-            bool newMax = (i == 0 ? (split[i].Length > max) : (split[i].Length - offsetX > max));
-            if (newMax) max = split[i].Length;
-        }
-
-        return max;
+    public string getText()
+    {
+        return textBox.text;
     }
 
     public Block getParent()
@@ -186,7 +191,7 @@ public class Block : MonoBehaviour
     public Window2D getWindow2D()
     {
         Block current = this;
-        while (current is Window2D)
+        while (current.GetType() != typeof(Window2D))
             current = current.getParent();
         return (Window2D)current;
     }

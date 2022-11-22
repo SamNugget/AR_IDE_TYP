@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class BlockTester : MonoBehaviour
 {
+    public int blockType;
+    public int[] subBlockTypes;
+
     void Start()
     {
-        GetComponent<Block>().initialise(-1, 0, new int[] { 3 });
+        GetComponent<Block>().initialise(blockType, subBlockTypes);
+        GetComponent<Block>().drawBlock();
     }
 }

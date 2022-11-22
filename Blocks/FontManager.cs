@@ -26,6 +26,11 @@ public class FontManager : MonoBehaviour
         return new Vector2(x * horizontalAdvance, y * lineHeight);
     }
 
+    public static int[] vectorToLettersAndLines(Vector2 v)
+    {
+        return new int[] { (int)(v.x / horizontalAdvance), (int)(v.y / lineHeight) };
+    }
+
     void OnDrawGizmosSelected()
     {
         for (int i = 0; i < 100; i++)
