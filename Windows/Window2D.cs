@@ -5,6 +5,8 @@ using TMPro;
 
 public class Window2D : Block
 {
+    //private List<BlockManager.BlockVariant> customBlockVariants;
+
     public override void initialise(int blockVariant, int[] subBlockVariants = null)
     {
         this.blockVariant = null;

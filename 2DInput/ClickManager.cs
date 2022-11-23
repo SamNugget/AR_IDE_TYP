@@ -5,64 +5,45 @@ using UnityEngine;
 // A temporary class for testing the 2D stuff
 public class ClickManager : MonoBehaviour
 {
-    [SerializeField] private List<Layer> layers;
-    [System.Serializable]
-    public class Layer
-    {
-        [SerializeField] private string name;
-        public string getName()
-        {
-            return name;
-        }
-
-        [SerializeField] private int layerIndex;
-        public int getLayerIndex()
-        {
-            return layerIndex;
-        }
-    }
+    // which block variant to place
+    private int currentBlockVariantIndex = 2;
 
     private RaycastHit lastHit;
-    private int currentBlockTypeIndex = 1;
     void Update()
     {
         Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            int layerHit = hit.transform.gameObject.layer;
-            string layerName = getHitLayerName(layerHit);
-            //Debug.Log(layerName);
+            Block b = getHitBlock(hit);
+            if (b == null) return;
+
+            BlockManager.BlockVariant bV = b.getBlockVariant();
+
+            string blockType = (bV != null ? bV.getBlockType() : "");
 
             if (Input.GetMouseButtonDown(0))
             {
-                switch (layerName)
+                if (bV != null && blockType.Equals(BlockManager.EMPTY))
                 {
-                    case "Empty2D":
-                        Debug.Log("SPAWN");
-                        Block hitBlock = hit.transform.parent.parent.GetComponent<Block>();
-                        BlockManager.spawnBlock(currentBlockTypeIndex, hitBlock);
-                        break;
+                    Debug.Log("SPAWN");
+                    Block hitBlock = hit.transform.parent.parent.GetComponent<Block>();
+                    BlockManager.spawnBlock(currentBlockVariantIndex, hitBlock);
                 }
             }
             else if (Input.GetMouseButton(0))
             {
-                switch (layerName)
+                if (bV == null && Vector3.Distance(Vector3.zero, lastHit.point) != 0f)
                 {
-                    case "Window2D":
-                        if (Vector3.Distance(Vector3.zero, lastHit.point) == 0f) break;
-                        Vector3 change = hit.point - lastHit.point;
-                        hit.transform.parent.parent.position += change;
-                        break;
+                    Vector3 change = hit.point - lastHit.point;
+                    hit.transform.parent.parent.position += change;
                 }
             }
             else
             {
-                switch (layerName)
+                if (bV != null)
                 {
-                    case "Empty2D":
-                    case "Block2D":
-                        hit.transform.GetComponent<MeshRenderer>().enabled = true;
-                        break;
+                    hit.transform.GetComponent<MeshRenderer>().enabled = true;
                 }
             }
 
@@ -82,32 +63,33 @@ public class ClickManager : MonoBehaviour
     {
         if (lastHit.transform != null)
         {
-            string layerName = getHitLayerName(lastHit.transform.gameObject.layer);
-            if (string.Equals(layerName, "Block2D") || string.Equals(layerName, "Empty2D"))
-            {
-                Block b = lastHit.transform.parent.parent.GetComponent<Block>();
-                if (b != null && b.getHighlightable())
-                    lastHit.transform.GetComponent<MeshRenderer>().enabled = false;
-            }
+            Block b = getHitBlock(lastHit);
+            if (b == null) return;
+
+            BlockManager.BlockVariant bV = b.getBlockVariant();
+            if (bV == null) return;
+            
+            if (b.getHighlightable())
+                lastHit.transform.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
-    private string getHitLayerName(int layer)
+    private Block getHitBlock(RaycastHit hit)
     {
-        string layerName = "";
-        foreach (Layer l in layers)
+        Transform parent = hit.transform.parent;
+        for (int i = 0; i < 2 && parent != null; i++)
         {
-            if (l.getLayerIndex() == layer)
-            {
-                layerName = l.getName();
-                break;
-            }
+            Block b = parent.GetComponent<Block>();
+            if (b != null) return b;
+
+            parent = parent.parent;
         }
-        return layerName;
+
+        return null;
     }
 
-    public void setCurrentBlockTypeIndex(int index)
+    public void setCurrentBlockVariantIndex(int index)
     {
-        currentBlockTypeIndex = index;
+        currentBlockVariantIndex = index;
     }
 }

@@ -8,14 +8,14 @@ public class BlockManager : MonoBehaviour
 
 
     public readonly static string ANY = "AY";
-
     public readonly static string EMPTY = "EY";
-    public readonly static string ACCESS_MODIFIER = "AM";
-    public readonly static string TYPE = "TP";
-    public readonly static string BOOLEAN_EXPRESSION = "BE";
     public readonly static string USING = "UG";
-    public readonly static string NAMESPACE = "NS";
-    public readonly static string BODY = "BY";
+
+    public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
+    public readonly static string TYPE = "TP"; // int, string, etc.
+    public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
+    public readonly static string NAMESPACE = "NS"; // System, UnityEngine, etc.
+    public readonly static string BODY = "BY"; // Class, if statements, etc.
 
 
     public static GameObject blockFab;
@@ -127,7 +127,12 @@ public class BlockManager : MonoBehaviour
     }
     public BlockVariant getBlockVariant(int index)
     {
-        return blockVariants[index];
+        if (index < 0 || index >= blockVariants.Count)
+        {
+            Debug.Log("Block variant index out of range.");
+            return null;
+        }
+        else return blockVariants[index];
     }
 
 
