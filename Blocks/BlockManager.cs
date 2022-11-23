@@ -6,31 +6,42 @@ public class BlockManager : MonoBehaviour
 {
     public static BlockManager singleton = null;
 
+
+    public readonly static string ANY = "AY";
+
+    public readonly static string EMPTY = "EY";
+    public readonly static string ACCESS_MODIFIER = "AM";
+    public readonly static string TYPE = "TP";
+    public readonly static string BOOLEAN_EXPRESSION = "BE";
+    public readonly static string USING = "UG";
+    public readonly static string NAMESPACE = "NS";
+    public readonly static string BODY = "BY";
+
+
     public static GameObject blockFab;
     [SerializeField] private GameObject blockPrefab;
 
     public Material emptyMat;
 
-    [SerializeField] private List<BlockType> blockTypes;
+
+    [SerializeField] private bool safeMode = true;
+
+
+    [SerializeField] private List<BlockVariant> blockVariants;
     [System.Serializable]
-    public class BlockType
+    public class BlockVariant
     {
         [SerializeField] private string name;
-        public string getName()
-        {
-            return name;
-        }
+
+        [SerializeField] private string blockType;
+
+        private string[] subBlockTypes;
 
 
-        // DEFAULT VALUES
-        // an array containing the text for each line in the block. '@' marks an input field
+        // DEFAULT VALUES, WILL BE CHANGED IN INSTANCE OF BLOCK
+        // an array containing the text for each line in the block. '@BT' marks an input field
         [SerializeField] private string[] lines;
-        public string[] getLines()
-        {
-            string[] ls = new string[lines.Length];
-            for (int i = 0; i < ls.Length; i++) ls[i] = lines[i];
-            return ls;
-        }
+
         // width and height in letters/lines
         private int width;
         private int height;
@@ -39,7 +50,31 @@ public class BlockManager : MonoBehaviour
         private int[,] subBlockPositions;
 
 
+        public string getName()
+        {
+            return name;
+        }
+
+        public string getBlockType()
+        {
+            return blockType;
+        }
+
+        public string[] getSubBlockTypes()
+        {
+            string[] sBTs = new string[subBlockTypes.Length];
+            for (int i = 0; i < sBTs.Length; i++) sBTs[i] = subBlockTypes[i];
+            return sBTs;
+        }
+
         // DEFAULT VALUES GET METHODS
+        public string[] getLines()
+        {
+            string[] ls = new string[lines.Length];
+            for (int i = 0; i < ls.Length; i++) ls[i] = lines[i];
+            return ls;
+        }
+
         public int getWidth() { return width; }
 
         public int getHeight() { return height; }
@@ -67,12 +102,32 @@ public class BlockManager : MonoBehaviour
             width = getMaxLineLength(lines);
             height = lines.Length;
 
+            // calculate subBlockPositions
             subBlockPositions = BlockManager.getSubBlockPositions(lines);
+
+            // get subBlockTypes
+            subBlockTypes = new string[subBlockPositions.GetLength(0)];
+            for (int i = 0; i < subBlockPositions.GetLength(0); i++)
+            {
+                string line = lines[subBlockPositions[i, 0]];
+                int pos = subBlockPositions[i, 1];
+                string newType;
+                try
+                {
+                    newType = "" + line[pos + 1] + line[pos + 2];
+                }
+                catch
+                {
+                    Debug.Log("Incorrect block line format.");
+                    newType = "AY";
+                }
+                subBlockTypes[i] = newType;
+            }
         }
     }
-    public BlockManager.BlockType getBlockType(int index)
+    public BlockVariant getBlockVariant(int index)
     {
-        return blockTypes[index];
+        return blockVariants[index];
     }
 
 
@@ -83,16 +138,29 @@ public class BlockManager : MonoBehaviour
 
 
     // called when spawning and deleting (/spawning empty block) block
-    public static void spawnBlock(int blockType, Block toReplace)
+    public static void spawnBlock(int blockVariant, Block toReplace)
     {
         // get info from emptyBlock
         Block parent = toReplace.getParent();
         int subBlockIndex = parent.getSubBlockIndex(toReplace);
 
+        // if replacing an empty block, check it is correct block type for parent
+        if (singleton.safeMode && toReplace.getBlockVariant().getBlockType().Equals(EMPTY))
+        {
+            string newBlockType = singleton.getBlockVariant(blockVariant).getBlockType();
+            string[] sBTs = parent.getBlockVariant().getSubBlockTypes();
+
+            if (sBTs[subBlockIndex] != ANY && sBTs[subBlockIndex] != newBlockType)
+            {
+                Debug.Log("This is not the correct block type for this area.");
+                return;
+            }
+        }
+
         // configure new block
         Block newBlock = Instantiate(blockFab, parent.transform).GetComponent<Block>();
         newBlock.transform.position = toReplace.transform.position;
-        newBlock.initialise(blockType);
+        newBlock.initialise(blockVariant);
 
         // reconfigure parent
         parent.replaceSubBlock(newBlock, subBlockIndex);
@@ -152,7 +220,7 @@ public class BlockManager : MonoBehaviour
 
         blockFab = blockPrefab;
 
-        foreach (BlockType bT in blockTypes)
+        foreach (BlockVariant bT in blockVariants)
         {
             bT.calculateInstanceVariables();
         }

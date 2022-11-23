@@ -7,14 +7,17 @@ using System.Text;
 
 public class Block : MonoBehaviour
 {
-    protected BlockManager.BlockType blockType;
+    protected BlockManager.BlockVariant blockVariant;
+    public BlockManager.BlockVariant getBlockVariant()
+    {
+        return blockVariant;
+    }
     public List<Block> subBlocks = null; // TODO: make private
 
     [SerializeField] protected int width; // TODO: rm sf
     public int getWidth() { return width; }
     [SerializeField] protected int height; // TODO: rm sf
     public int getHeight() { return height; }
-    protected int[,] subBlockPositions;
 
     [SerializeField] private TextMeshPro textBox;
 
@@ -27,28 +30,28 @@ public class Block : MonoBehaviour
 
 
 
-    public virtual void initialise(int blockType, int[] subBlockTypes = null)
+    public virtual void initialise(int blockVariant, int[] subBlockVariants = null)
     {
-        this.blockType = BlockManager.singleton.getBlockType(blockType);
+        this.blockVariant = BlockManager.singleton.getBlockVariant(blockVariant);
         this.subBlocks = new List<Block>();
         highlightable = true;
 
 
 
-        if (subBlockTypes == null)
+        if (subBlockVariants == null)
         {
-            subBlockTypes = new int[this.blockType.getSubBlockCount()]; // assumes all values zero
+            subBlockVariants = new int[this.blockVariant.getSubBlockCount()]; // assumes all values zero
         }
-        else if (subBlockTypes.Length != this.blockType.getSubBlockCount())
+        else if (subBlockVariants.Length != this.blockVariant.getSubBlockCount())
         {
-            Debug.Log("Block initialised with an incorrect subBlockTypes Array");
-            subBlockTypes = new int[this.blockType.getSubBlockCount()]; // assumes all values zero
+            Debug.Log("Block initialised with an incorrect subBlockVariants Array");
+            subBlockVariants = new int[this.blockVariant.getSubBlockCount()]; // assumes all values zero
         }
 
 
 
         // if empty block, change layer. TODO: change this
-        if (blockType == 0)
+        if (this.blockVariant.getBlockType().Equals(BlockManager.EMPTY))
         {
             transform.GetChild(0).GetChild(0).gameObject.layer = 8;
             transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material = BlockManager.singleton.emptyMat;
@@ -57,7 +60,7 @@ public class Block : MonoBehaviour
 
 
         // spawn all sub blocks
-        foreach (int s in subBlockTypes)
+        foreach (int s in subBlockVariants)
         {
             Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
             Block subBlockScript = subBlock.GetComponent<Block>();
@@ -78,22 +81,21 @@ public class Block : MonoBehaviour
     // fills text box with text, updates width and height, and moves subblocks
     public virtual void populateTextBox()
     {
-        width = blockType.getWidth();
-        height = blockType.getHeight();
+        width = blockVariant.getWidth();
+        height = blockVariant.getHeight();
         int extraHeight = 0;
 
-        string[] lines = blockType.getLines();
-        int[,] subBlockPositions = blockType.getSubBlockPositions();
+        string[] lines = blockVariant.getLines();
+        int[,] subBlockPositions = blockVariant.getSubBlockPositions();
 
         for (int i = 0; i < subBlockPositions.GetLength(0); i++)
         {
             int currentLine = subBlockPositions[i, 0];
-            Debug.Log(blockType.getName() + ": " + lines[currentLine]);
             int posInLine = subBlockPositions[i, 1];
 
             // split line into two strings, one before @ and one after @
             string before = lines[currentLine].Substring(0, posInLine);
-            string after = lines[currentLine].Substring(posInLine + 1);
+            string after = lines[currentLine].Substring(posInLine + 3);
 
             // create a blank area which subblocks[i] will be on top
             // if this is a multi-line block

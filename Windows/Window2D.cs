@@ -5,24 +5,24 @@ using TMPro;
 
 public class Window2D : Block
 {
-    public override void initialise(int blockType, int[] subBlockTypes = null)
+    public override void initialise(int blockVariant, int[] subBlockVariants = null)
     {
-        this.blockType = null;
+        this.blockVariant = null;
         this.subBlocks = new List<Block>();
         highlightable = false;
 
 
 
-        if (subBlockTypes.Length != 1)
+        if (subBlockVariants.Length != 1)
         {
-            Debug.Log("Block initialised with an incorrect subBlockTypes Array");
-            subBlockTypes = new int[1]; // assumes all values zero
+            Debug.Log("Block initialised with an incorrect subBlockVariants Array");
+            subBlockVariants = new int[1]; // assumes all values zero
         }
 
 
 
         // spawn all sub blocks
-        foreach (int s in subBlockTypes)
+        foreach (int s in subBlockVariants)
         {
             Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
             Block subBlockScript = subBlock.GetComponent<Block>();
@@ -64,13 +64,6 @@ public class Window2D : Block
     }
 
 
-
-    void Update()
-    {
-        //rescaleWindow(WindowManager.scale);
-
-        resizeBlock();
-    }
 
     // rescale top level child blocks, and thus all nested blocks
     public void rescaleWindow(float scale)

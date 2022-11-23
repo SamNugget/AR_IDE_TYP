@@ -31,7 +31,7 @@ public class ClickManager : MonoBehaviour
         {
             int layerHit = hit.transform.gameObject.layer;
             string layerName = getHitLayerName(layerHit);
-            Debug.Log(layerName);
+            //Debug.Log(layerName);
 
             if (Input.GetMouseButtonDown(0))
             {
