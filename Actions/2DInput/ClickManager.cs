@@ -5,13 +5,6 @@ using UnityEngine;
 // A temporary class for testing the 2D stuff
 public class ClickManager : MonoBehaviour
 {
-    // which block variant to place
-    private static int currentBlockVariantIndex = 2;
-    public static void setCurrentBlockVariantIndex(int index)
-    {
-        currentBlockVariantIndex = index;
-    }
-
     private RaycastHit lastHit;
     void Update()
     {
@@ -26,25 +19,26 @@ public class ClickManager : MonoBehaviour
 
             string blockType = (bV != null ? bV.getBlockType() : "");
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0)) // 3D: on finger intersect collider
             {
+                // place block
                 if (bV != null && blockType.Equals(BlockManager.EMPTY))
                 {
-                    Debug.Log("SPAWN");
-                    Block hitBlock = hit.transform.parent.parent.GetComponent<Block>();
-                    BlockManager.spawnBlock(currentBlockVariantIndex, hitBlock);
+                    ActionManager.callAction(ActionManager.PLACE, b);
                 }
             }
-            else if (Input.GetMouseButton(0))
+            else if (Input.GetMouseButton(0)) // 3D: while grabbing
             {
+                // move window (3D: or block) (doesn't call actionmanager, done by MTRK)
                 if (bV == null && Vector3.Distance(Vector3.zero, lastHit.point) != 0f)
                 {
                     Vector3 change = hit.point - lastHit.point;
                     hit.transform.parent.parent.position += change;
                 }
             }
-            else
+            else // 3D: raycast out of hand
             {
+                // highlight (doesn't call actionmanager, simple action)
                 if (bV != null)
                 {
                     hit.transform.GetComponent<MeshRenderer>().enabled = true;

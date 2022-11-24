@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class ActionButton : MonoBehaviour
 {
+    // float width?
+    // float height?
+
     private char action;
     public void setAction(char a)
     {
         action = a;
     }
-    private string data;
-    public void setData(string d)
+    private object data;
+    public void setData(object d)
     {
         data = d;
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,10 @@ using UnityEngine;
 public class ActionManager : MonoBehaviour
 {
     public static char BLOCK_SELECT = 'B';
+
     public static char PLACE = 'P';
+    // which block variant to place
+    private static int blockToPlace = -1;
 
 
     //                  |placement  |deletion   |empty replace      |split  |no action              |place in ANY
@@ -33,21 +37,26 @@ public class ActionManager : MonoBehaviour
     // creating types? scope logic?
 
 
-    public static void callAction(char action, string data)
+    public static void callAction(char action, object data)
     {
-        switch(action)
+        try
         {
-            case 'B':
-                int variantIndex;
-                int.TryParse(data, out variantIndex);
-                if (variantIndex > 0)
-                {
-                    ClickManager.setCurrentBlockVariantIndex(variantIndex);
+            switch(action)
+            {
+                case 'B':
+                    int variantIndex = (int)data;
+                    blockToPlace = variantIndex;
                     return;
-                }
-                break;
+                case 'P':
+                    Block b = (Block)data;
+                    BlockManager.spawnBlock(blockToPlace, b);
+                    return;
+            }
         }
+        catch(Exception e)
+        {
 
+        }
         Debug.Log("Err calling action " + action + " with data: " + data);
     }
 }

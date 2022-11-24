@@ -151,6 +151,9 @@ public class BlockManager : MonoBehaviour
     // called when spawning and deleting (/spawning empty block) block
     public static void spawnBlock(int blockVariant, Block toReplace)
     {
+        BlockVariant bV = singleton.getBlockVariant(blockVariant);
+        if (bV == null) return;
+
         // get info from emptyBlock
         Block parent = toReplace.getParent();
         int subBlockIndex = parent.getSubBlockIndex(toReplace);
@@ -158,7 +161,7 @@ public class BlockManager : MonoBehaviour
         // if replacing an empty block, check it is correct block type for parent
         if (singleton.safeMode && toReplace.getBlockVariant().getBlockType().Equals(EMPTY))
         {
-            string newBlockType = singleton.getBlockVariant(blockVariant).getBlockType();
+            string newBlockType = bV.getBlockType();
             string[] sBTs = parent.getBlockVariant().getSubBlockTypes();
 
             if (sBTs[subBlockIndex] != ANY && sBTs[subBlockIndex] != newBlockType)
