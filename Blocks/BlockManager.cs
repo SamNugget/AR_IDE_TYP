@@ -13,6 +13,7 @@ public class BlockManager : MonoBehaviour
 
     public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
     public readonly static string TYPE = "TP"; // int, string, etc.
+    public readonly static string VARIABLE = "VR"; // @TP *name*
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
     public readonly static string NAMESPACE = "NS"; // System, UnityEngine, etc.
     public readonly static string BODY = "BY"; // Class, if statements, etc.

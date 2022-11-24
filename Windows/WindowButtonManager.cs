@@ -42,7 +42,7 @@ public class WindowButtonManager : MonoBehaviour
 
             // configure actionbuttonscript
             ActionButton actionButtonScript = newButton.GetComponent<ActionButton>();
-            actionButtonScript.setAction(ActionManager.PLACE);
+            actionButtonScript.setAction(ActionManager.BLOCK_SELECT);
             actionButtonScript.setData("" + variantIndex);
 
             // add callback to actionbuttonscript on buttonscript

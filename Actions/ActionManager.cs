@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class ActionManager : MonoBehaviour
 {
-    public static ActionManager singleton = null;
-
+    public static char BLOCK_SELECT = 'B';
     public static char PLACE = 'P';
 
 
@@ -34,9 +33,21 @@ public class ActionManager : MonoBehaviour
     // creating types? scope logic?
 
 
-    void Awake()
+    public static void callAction(char action, string data)
     {
-        if (singleton == null) singleton = this;
-        else Debug.LogError("Two ActionManager singletons.");
+        switch(action)
+        {
+            case 'B':
+                int variantIndex;
+                int.TryParse(data, out variantIndex);
+                if (variantIndex > 0)
+                {
+                    ClickManager.setCurrentBlockVariantIndex(variantIndex);
+                    return;
+                }
+                break;
+        }
+
+        Debug.Log("Err calling action " + action + " with data: " + data);
     }
 }

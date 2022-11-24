@@ -17,12 +17,6 @@ public class ActionButton : MonoBehaviour
 
     public void callAction()
     {
-        // TEMP
-        int variantIndex;
-        int.TryParse(data, out variantIndex);
-        if (variantIndex > 0)
-            ClickManager.setCurrentBlockVariantIndex(variantIndex);
-
-        //ActionManager.callAction(action, data);
+        ActionManager.callAction(action, data);
     }
 }
