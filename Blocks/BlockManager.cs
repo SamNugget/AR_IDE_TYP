@@ -21,8 +21,6 @@ public class BlockManager : MonoBehaviour
     public static GameObject blockFab;
     [SerializeField] private GameObject blockPrefab;
 
-    public Material emptyMat;
-
 
     [SerializeField] private bool safeMode = true;
 
@@ -36,6 +34,8 @@ public class BlockManager : MonoBehaviour
         [SerializeField] private string blockType;
 
         private string[] subBlockTypes;
+
+        [SerializeField] private Color color;
 
 
         // DEFAULT VALUES, WILL BE CHANGED IN INSTANCE OF BLOCK
@@ -65,6 +65,11 @@ public class BlockManager : MonoBehaviour
             string[] sBTs = new string[subBlockTypes.Length];
             for (int i = 0; i < sBTs.Length; i++) sBTs[i] = subBlockTypes[i];
             return sBTs;
+        }
+
+        public Color getColor()
+        {
+            return new Color(color.r, color.g, color.b, color.a);
         }
 
         // DEFAULT VALUES GET METHODS

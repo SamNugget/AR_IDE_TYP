@@ -50,12 +50,8 @@ public class Block : MonoBehaviour
 
 
 
-        // if empty block, change layer. TODO: change this
-        if (this.blockVariant.getBlockType().Equals(BlockManager.EMPTY))
-        {
-            transform.GetChild(0).GetChild(0).gameObject.layer = 8;
-            transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material = BlockManager.singleton.emptyMat;
-        }
+        // TODO: none of this. the highlight should move and scale itself
+        transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = this.blockVariant.getColor();
 
 
 

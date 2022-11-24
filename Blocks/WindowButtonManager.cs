@@ -31,22 +31,26 @@ public class WindowButtonManager : MonoBehaviour
             string name = bV.getName();
             float width = FontManager.lettersAndLinesToVector(name.Length + 1, 0).x;
 
+            // spawn, position and scale button
             RectTransform newButton = Instantiate(buttonFab, blockButtonsParent).GetComponent<RectTransform>();
-            newButton.GetComponentInChildren<TextMeshProUGUI>().text = name;
             newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textHeight * 100f);
             newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width * 100f);
             newButton.localPosition = new Vector2(-(width / 2f), -(i * (textHeight + buttonSpacing) + (textHeight / 2f)));
 
+            // set text of button
+            newButton.GetComponentInChildren<TextMeshProUGUI>().text = name;
+
+            // configure actionbuttonscript
+            ActionButton actionButtonScript = newButton.GetComponent<ActionButton>();
+            actionButtonScript.setAction(ActionManager.PLACE);
+            actionButtonScript.setData("" + variantIndex);
+
+            // add callback to actionbuttonscript on buttonscript
             Button buttonScript = newButton.GetComponent<Button>();
             UnityEvent uE = buttonScript.onClick;
-            uE.AddListener(setCurrentBlockVariantIndex);
+            uE.AddListener(actionButtonScript.callAction);
 
             blockButtons.Add(newButton);
         }
-    }
-
-    public void setCurrentBlockVariantIndex()
-    {
-        clickManager.setCurrentBlockVariantIndex(4);
     }
 }

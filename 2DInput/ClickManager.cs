@@ -6,7 +6,11 @@ using UnityEngine;
 public class ClickManager : MonoBehaviour
 {
     // which block variant to place
-    private int currentBlockVariantIndex = 2;
+    private static int currentBlockVariantIndex = 2;
+    public static void setCurrentBlockVariantIndex(int index)
+    {
+        currentBlockVariantIndex = index;
+    }
 
     private RaycastHit lastHit;
     void Update()
@@ -86,10 +90,5 @@ public class ClickManager : MonoBehaviour
         }
 
         return null;
-    }
-
-    public void setCurrentBlockVariantIndex(int index)
-    {
-        currentBlockVariantIndex = index;
     }
 }

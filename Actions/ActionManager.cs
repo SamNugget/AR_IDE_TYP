@@ -6,17 +6,19 @@ public class ActionManager : MonoBehaviour
 {
     public static ActionManager singleton = null;
 
+    public static char PLACE = 'P';
 
-    //                  |placement  |deletion   |empty replace      |split  |no action
-    //ANY               |  never  instantiated  |any                |yes    |
-    //EMPTY             |yes        |           |                   |       |
-    //USING             |           |yes        |UG                 |yes    |
-    //==============================================================================================
-    //ACCESS_MODIFIER   |           |           |                   |       |cycles through
-    //TYPE              |           |yes        |TP                 |no     |if no type, create type
-    //BOOLEAN_EXPRESSION|           |yes        |BE                 |(?)    |
-    //NAMESPACE         |           |yes        |                   |       |keyboard or list
-    //BODY              |           |yes        |BY                 |yes    |
+
+    //                  |placement  |deletion   |empty replace      |split  |no action              |place in ANY
+    //ANY               |  never  instantiated  |any                |yes    |                       |NA
+    //EMPTY             |yes        |           |                   |       |                       |NA
+    //USING             |           |yes        |UG                 |yes    |                       |must be explicit
+    //===============================================================================================
+    //ACCESS_MODIFIER   |           |           |                   |       |cycles through         |NA
+    //TYPE              |           |yes        |TP                 |no     |if no type, create type|yes?
+    //BOOLEAN_EXPRESSION|           |yes        |BE                 |(?)    |                       |must be explicit
+    //NAMESPACE         |           |yes        |                   |       |keyboard or list       |must be explicit
+    //BODY              |           |yes        |BY                 |yes    |                       |yes
 
 
     // placement
