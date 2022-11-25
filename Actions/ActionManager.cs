@@ -6,8 +6,9 @@ using UnityEngine;
 public class ActionManager : MonoBehaviour
 {
     public static char BLOCK_SELECT = 'B';
-
     public static char PLACE = 'P';
+    public static char DELETE = 'D';
+
     // which block variant to place
     private static int blockToPlace = -1;
 
@@ -41,22 +42,21 @@ public class ActionManager : MonoBehaviour
     {
         try
         {
-            switch(action)
+            if (action == BLOCK_SELECT)
             {
-                case 'B':
-                    int variantIndex = (int)data;
-                    blockToPlace = variantIndex;
-                    return;
-                case 'P':
-                    Block b = (Block)data;
-                    BlockManager.spawnBlock(blockToPlace, b);
-                    return;
+                int variantIndex = (int)data;
+                blockToPlace = variantIndex;
             }
+            else if (action == PLACE || action == DELETE)
+            {
+                Block toReplace = (Block)data;
+                BlockManager.spawnBlock((action == PLACE ? blockToPlace : 0), toReplace);
+            }
+            else Debug.Log("Action " + action + " was not recognised.");
         }
         catch(Exception e)
         {
-
+            Debug.Log("Err calling action " + action + " with data: " + data);
         }
-        Debug.Log("Err calling action " + action + " with data: " + data);
     }
 }

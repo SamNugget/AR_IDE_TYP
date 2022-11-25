@@ -140,6 +140,10 @@ public class BlockManager : MonoBehaviour
         }
         else return blockVariants[index];
     }
+    public int getNoOfBlockVariants()
+    {
+        return blockVariants.Count;
+    }
 
 
 

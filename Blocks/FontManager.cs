@@ -9,8 +9,8 @@ public class FontManager : MonoBehaviour
     public TMP_FontAsset font;
     public float approxScale = 0.001f;
 
-    private static float lineHeight;
-    private static float horizontalAdvance;
+    public static float lineHeight;
+    public static float horizontalAdvance;
 
     // https://docs.unity3d.com/2019.1/Documentation/ScriptReference/TextCore.FaceInfo.html
     void Awake()
