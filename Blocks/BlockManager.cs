@@ -187,7 +187,10 @@ public class BlockManager : MonoBehaviour
         Destroy(toReplace.gameObject);
 
         // draw the blocks
-        parent.getWindow2D().drawBlock();
+        // TODO: draw blocks should be in blocks, go recursively to highest, then down
+        Window2D window = parent.getWindow2D();
+        if (window != null)
+            ((EditWindow)window).drawBlocks();
     }
 
 

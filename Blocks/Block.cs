@@ -7,22 +7,22 @@ using System.Text;
 
 public class Block : MonoBehaviour
 {
-    protected BlockManager.BlockVariant blockVariant;
+    private BlockManager.BlockVariant blockVariant;
     public BlockManager.BlockVariant getBlockVariant()
     {
         return blockVariant;
     }
-    public List<Block> subBlocks = null; // TODO: make private
+    private List<Block> subBlocks = null; // TODO: make private
 
-    [SerializeField] protected int width; // TODO: rm sf
+    private int width;
     public int getWidth() { return width; }
-    [SerializeField] protected int height; // TODO: rm sf
+    private int height;
     public int getHeight() { return height; }
 
     [SerializeField] private TextMeshPro textBox;
 
     // this needs to go
-    protected bool highlightable;
+    private bool highlightable;
     public bool getHighlightable()
     {
         return highlightable;
@@ -30,7 +30,7 @@ public class Block : MonoBehaviour
 
 
 
-    public virtual void initialise(int blockVariant, int[] subBlockVariants = null)
+    public void initialise(int blockVariant, int[] subBlockVariants = null)
     {
         this.blockVariant = BlockManager.singleton.getBlockVariant(blockVariant);
         this.subBlocks = new List<Block>();
@@ -75,7 +75,7 @@ public class Block : MonoBehaviour
     }
 
     // fills text box with text, updates width and height, and moves subblocks
-    public virtual void populateTextBox()
+    private void populateTextBox()
     {
         width = blockVariant.getWidth();
         height = blockVariant.getHeight();
@@ -151,7 +151,7 @@ public class Block : MonoBehaviour
     }
 
     // resizes this block
-    public virtual void resizeBlock()
+    private void resizeBlock()
     {
         Vector2 planeSize = FontManager.lettersAndLinesToVector(width, height);
 
@@ -165,6 +165,8 @@ public class Block : MonoBehaviour
         tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, planeSize.y);
         tB.localPosition = new Vector3(planeSize.x / 2f, -planeSize.y / 2f, tB.localPosition.z);
     }
+
+
 
     public int getSubBlockIndex(Block b)
     {
@@ -188,9 +190,13 @@ public class Block : MonoBehaviour
 
     public Window2D getWindow2D()
     {
-        Block current = this;
-        while (current.GetType() != typeof(Window2D))
-            current = current.getParent();
-        return (Window2D)current;
+        Window2D window = transform.parent.GetComponent<Window2D>();
+        if (window == null)
+        {
+            Block parent = getParent();
+            if (parent != null)
+                window = parent.getWindow2D();
+        }
+        return window;
     }
 }

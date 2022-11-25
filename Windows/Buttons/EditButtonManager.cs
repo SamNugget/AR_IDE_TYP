@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
 
-public class WindowButtonManager : ButtonManager2D
+public class EditButtonManager : ButtonManager2D
 {
     // TODO: lists could be more dynamic, parent class could have add/remove button functions
     private List<Transform> blockButtons = new List<Transform>();
