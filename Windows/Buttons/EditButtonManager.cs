@@ -13,7 +13,7 @@ public class EditButtonManager : ButtonManager2D
 
     protected override void distributeButtons()
     {
-        int noOfButtons = BlockManager.singleton.getNoOfBlockVariants() - 2;
+        int noOfButtons = BlockManager.getNoOfBlockVariants() - 2;
 
         string[] buttonLabels = new string[noOfButtons];
         char[] actions = new char[noOfButtons];
@@ -23,9 +23,9 @@ public class EditButtonManager : ButtonManager2D
         {
             int variantIndex = i + 2;
 
-            BlockManager.BlockVariant bV = BlockManager.singleton.getBlockVariant(variantIndex);
+            BlockManager.BlockVariant bV = BlockManager.getBlockVariant(variantIndex);
             buttonLabels[i] = bV.getName();
-            actions[i] = ActionManager.BLOCK_SELECT;
+            actions[i] = ActionManager.PLACE_SELECT;
             data[i] = variantIndex;
         }
 

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-using System.Text;
-
 public class Block : MonoBehaviour
 {
     private BlockManager.BlockVariant blockVariant;
@@ -21,20 +19,12 @@ public class Block : MonoBehaviour
 
     [SerializeField] private TextMeshPro textBox;
 
-    // this needs to go
-    private bool highlightable;
-    public bool getHighlightable()
-    {
-        return highlightable;
-    }
-
 
 
     public void initialise(int blockVariant, int[] subBlockVariants = null)
     {
-        this.blockVariant = BlockManager.singleton.getBlockVariant(blockVariant);
+        this.blockVariant = BlockManager.getBlockVariant(blockVariant);
         this.subBlocks = new List<Block>();
-        highlightable = true;
 
 
 

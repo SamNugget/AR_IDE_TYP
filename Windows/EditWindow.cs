@@ -30,8 +30,6 @@ public class EditWindow : Window2D
         masterBlock = Instantiate(BlockManager.blockFab, transform).transform.GetComponent<Block>();
         masterBlock.initialise(1);
         masterBlock.drawBlock();
-
-        resizeWindow();
     }
 
     void Update()

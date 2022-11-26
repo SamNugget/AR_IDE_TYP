@@ -131,18 +131,18 @@ public class BlockManager : MonoBehaviour
             }
         }
     }
-    public BlockVariant getBlockVariant(int index)
+    public static BlockVariant getBlockVariant(int index)
     {
-        if (index < 0 || index >= blockVariants.Count)
+        if (index < 0 || index >= singleton.blockVariants.Count)
         {
             Debug.Log("Block variant index out of range.");
             return null;
         }
-        else return blockVariants[index];
+        else return singleton.blockVariants[index];
     }
-    public int getNoOfBlockVariants()
+    public static int getNoOfBlockVariants()
     {
-        return blockVariants.Count;
+        return singleton.blockVariants.Count;
     }
 
 
@@ -155,17 +155,19 @@ public class BlockManager : MonoBehaviour
     // called when spawning and deleting (/spawning empty block) block
     public static void spawnBlock(int blockVariant, Block toReplace)
     {
-        BlockVariant bV = singleton.getBlockVariant(blockVariant);
-        if (bV == null) return;
-
         // get info from emptyBlock
         Block parent = toReplace.getParent();
+        if (parent == null)
+        {
+            Debug.Log("Can't delete the master block.");
+            return;
+        }
         int subBlockIndex = parent.getSubBlockIndex(toReplace);
 
         // if replacing an empty block, check it is correct block type for parent
         if (singleton.safeMode && toReplace.getBlockVariant().getBlockType().Equals(EMPTY))
         {
-            string newBlockType = bV.getBlockType();
+            string newBlockType = getBlockVariant(blockVariant).getBlockType();
             string[] sBTs = parent.getBlockVariant().getSubBlockTypes();
 
             if (sBTs[subBlockIndex] != ANY && sBTs[subBlockIndex] != newBlockType)

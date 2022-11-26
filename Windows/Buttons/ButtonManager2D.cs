@@ -12,6 +12,8 @@ public abstract class ButtonManager2D : MonoBehaviour
 
     public float buttonSpacing;
 
+    public bool alignRightEdge;
+
 
 
     protected abstract void distributeButtons();
@@ -35,7 +37,8 @@ public abstract class ButtonManager2D : MonoBehaviour
             RectTransform newButton = Instantiate(buttonFab, blockButtonsParent).GetComponent<RectTransform>();
             newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textHeight * 100f);
             newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width * 100f);
-            newButton.localPosition = new Vector2(-(width / 2f), -(i * (textHeight + buttonSpacing) + (textHeight / 2f)));
+            float x = alignRightEdge ? -(width / 2f) : (width / 2f);
+            newButton.localPosition = new Vector2(x, -(i * (textHeight + buttonSpacing) + (textHeight / 2f)));
 
             // set text of button
             newButton.GetComponentInChildren<TextMeshProUGUI>().text = buttonLabels[i];

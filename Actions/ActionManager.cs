@@ -5,12 +5,22 @@ using UnityEngine;
 
 public class ActionManager : MonoBehaviour
 {
-    public static char BLOCK_SELECT = 'B';
-    public static char PLACE = 'P';
-    public static char DELETE = 'D';
+    private static char currentAction = '\0';
+    private static void setCurrentAction(char action)
+    {
+        currentAction = action;
 
-    // which block variant to place
-    private static int blockToPlace = -1;
+        if (currentAction == PLACE_SELECT)
+        {
+            string blockName = BlockManager.getBlockVariant(blockToPlace).getName();
+            tools.setTitleTextMessage("Placing " + blockName + " block...");
+        }
+        if (currentAction == DELETE_SELECT) tools.setTitleTextMessage("Deleting...");
+    }
+
+    public static char PLACE_SELECT = 'p';
+    public static char DELETE_SELECT = 'd';
+    public static char BLOCK_CLICKED = 'B';
 
 
     //                  |placement  |deletion   |empty replace      |split  |no action              |place in ANY
@@ -38,21 +48,63 @@ public class ActionManager : MonoBehaviour
     // creating types? scope logic?
 
 
+    // which block variant to place
+    private static int blockToPlace = -1;
+
+    // tools window for feedback
+    private static Window2D tools;
+    [SerializeField] private Window2D toolsWindow;
+
+    void Awake()
+    {
+        tools = toolsWindow;
+    }
+
     public static void callAction(char action, object data)
     {
         try
         {
-            if (action == BLOCK_SELECT)
+
+
+
+            if (action == PLACE_SELECT)
             {
                 int variantIndex = (int)data;
                 blockToPlace = variantIndex;
+                setCurrentAction(action);
             }
-            else if (action == PLACE || action == DELETE)
+            else if (action == DELETE_SELECT)
+            {
+                setCurrentAction(action);
+            }
+            else if (action == BLOCK_CLICKED)
             {
                 Block toReplace = (Block)data;
-                BlockManager.spawnBlock((action == PLACE ? blockToPlace : 0), toReplace);
+
+
+
+                if (currentAction == PLACE_SELECT)
+                {
+                    BlockManager.spawnBlock(blockToPlace, toReplace);
+                }
+                else if (currentAction == DELETE_SELECT)
+                {
+                    string type = toReplace.getBlockVariant().getBlockType();
+                    if (type.Equals(BlockManager.EMPTY) || type.Equals(BlockManager.ACCESS_MODIFIER))
+                    {
+                        Debug.Log("Can't delete block of this type.");
+                        return;
+                    }
+                    BlockManager.spawnBlock(0, toReplace);
+                }
+
+
+
             }
             else Debug.Log("Action " + action + " was not recognised.");
+
+
+
         }
         catch(Exception e)
         {

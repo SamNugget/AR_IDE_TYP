@@ -29,28 +29,19 @@ public class ClickManager : MonoBehaviour
             }
             else
             {
-                BlockManager.BlockVariant bV = b.getBlockVariant();
-                string blockType = (bV != null ? bV.getBlockType() : "");
-
                 if (Input.GetMouseButtonDown(0)) // 3D: on finger intersect collider
                 {
-                    // place block
-                    if (bV != null && blockType.Equals(BlockManager.EMPTY))
-                    {
-                        ActionManager.callAction(ActionManager.PLACE, b);
-                    }
+                    // block clicked
+                    ActionManager.callAction(ActionManager.BLOCK_CLICKED, b);
                 }
-                else if (Input.GetMouseButton(0))
+                else if (Input.GetMouseButton(0)) // 3D: on grab
                 {
 
                 }
                 else // 3D: raycast out of hand
                 {
                     // highlight (doesn't call actionmanager, simple action)
-                    if (bV != null)
-                    {
-                        hit.transform.GetComponent<MeshRenderer>().enabled = true;
-                    }
+                    hit.transform.GetComponent<MeshRenderer>().enabled = true;
                 }
             }
 
@@ -71,8 +62,7 @@ public class ClickManager : MonoBehaviour
             Block b = getHitType<Block>(lastHit);
             if (b == null) return;
             
-            if (b.getHighlightable()) // TODO: this is old, remove
-                lastHit.transform.GetComponent<MeshRenderer>().enabled = false;
+            lastHit.transform.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
