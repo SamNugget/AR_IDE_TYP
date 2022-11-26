@@ -29,6 +29,6 @@ public class EditButtonManager : ButtonManager2D
             data[i] = variantIndex;
         }
 
-        distributeVertically(buttonLabels, actions, data);
+        blockButtons = distributeVertically(buttonLabels, actions, data);
     }
 }

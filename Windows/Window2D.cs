@@ -12,7 +12,7 @@ public class Window2D : MonoBehaviour
     [SerializeField] private int height = 10;
     public void setHeight(int h) { height = h; }
 
-    protected void resizeWindow()
+    public void resizeWindow()
     {
         float topPlaneHeight = FontManager.lineHeight;
         Vector2 planeSize = FontManager.lettersAndLinesToVector(width, height);
