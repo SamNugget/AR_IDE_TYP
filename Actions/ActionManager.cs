@@ -29,7 +29,7 @@ public class ActionManager : MonoBehaviour
     //USING             |           |yes        |UG                 |yes    |                       |must be explicit
     //===============================================================================================
     //ACCESS_MODIFIER   |           |           |                   |       |cycles through         |NA
-    //TYPE              |           |yes        |TP                 |no     |if no type, create type|yes?
+    //TYPE              |           |yes        |TP  create if none |no     |                       |yes?
     //BOOLEAN_EXPRESSION|           |yes        |BE                 |(?)    |                       |must be explicit
     //NAMESPACE         |           |yes        |                   |       |keyboard or list       |must be explicit
     //BODY              |           |yes        |BY                 |yes    |                       |yes
@@ -79,23 +79,48 @@ public class ActionManager : MonoBehaviour
             }
             else if (action == BLOCK_CLICKED)
             {
-                Block toReplace = (Block)data;
+                Block clicked = (Block)data;
+                BlockManager.BlockVariant variant = clicked.getBlockVariant();
+                string type = variant.getBlockType();
 
 
 
-                if (currentAction == PLACE_SELECT)
+                // check for special types first
+                if (type.Equals(BlockManager.ACCESS_MODIFIER))
                 {
-                    BlockManager.spawnBlock(blockToPlace, toReplace);
+                    BlockManager.BlockVariant newVariant;
+                    if (variant.getName().Equals("Public"))
+                        newVariant = BlockManager.getBlockVariant("Private");
+                    else
+                        newVariant = BlockManager.getBlockVariant("Public");
+
+                    int nVIndex = BlockManager.getBlockVariantIndex(newVariant);
+                    BlockManager.spawnBlock(nVIndex, clicked);
+
+                    Window2D window = clicked.getWindow2D();
+                    if (window != null) ((EditWindow)window).drawBlocks();
+                }
+                else if (type.Equals(BlockManager.NAMESPACE))
+                {
+                    // keyboard or special list
+                    // namespaces clutter block list
+                }
+                
+
+
+                // apply current action if not special type
+                else if (currentAction == PLACE_SELECT)
+                {
+                    BlockManager.spawnBlock(blockToPlace, clicked);
                 }
                 else if (currentAction == DELETE_SELECT)
                 {
-                    string type = toReplace.getBlockVariant().getBlockType();
                     if (type.Equals(BlockManager.EMPTY) || type.Equals(BlockManager.ACCESS_MODIFIER))
                     {
                         Debug.Log("Can't delete block of this type.");
                         return;
                     }
-                    BlockManager.spawnBlock(0, toReplace);
+                    BlockManager.spawnBlock(0, clicked);
                 }
 
 

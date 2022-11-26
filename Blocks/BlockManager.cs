@@ -7,16 +7,31 @@ public class BlockManager : MonoBehaviour
     public static BlockManager singleton = null;
 
 
-    public readonly static string ANY = "AY";
+    // special
     public readonly static string EMPTY = "EY";
-    public readonly static string USING = "UG";
+    public readonly static string ANY = "AY";
 
+    // class (TODO: struct)
+    public readonly static string CLASS_BODY = "CB";
+    public readonly static string FIELD = "FD"; // @AM @TP *name*
+    public readonly static string METHOD = "MD"; // @AM @TP *name*()
+
+    // for fields and methods
     public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
     public readonly static string TYPE = "TP"; // int, string, etc.
-    public readonly static string VARIABLE = "VR"; // @TP *name*
-    public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
-    public readonly static string NAMESPACE = "NS"; // System, UnityEngine, etc.
+
+    // for inside methods and constructors
     public readonly static string BODY = "BY"; // Class, if statements, etc.
+    public readonly static string VARIABLE = "VR"; // @TP *name*
+
+    // for if statements, while loops
+    public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
+
+    // for namespaces stuff and things
+    public readonly static string USING = "UG";
+    public readonly static string NAMESPACE = "NS"; // System, UnityEngine, etc.
+
+    // TODO: structs, constructors, properties, delegates, and events
 
 
     public static GameObject blockFab;
@@ -140,6 +155,16 @@ public class BlockManager : MonoBehaviour
         }
         else return singleton.blockVariants[index];
     }
+    public static BlockVariant getBlockVariant(string name)
+    {
+        foreach (BlockVariant bV in singleton.blockVariants)
+            if (bV.getName().Equals(name)) return bV;
+        return null;
+    }
+    public static int getBlockVariantIndex(BlockVariant bV)
+    {
+        return singleton.blockVariants.IndexOf(bV);
+    }
     public static int getNoOfBlockVariants()
     {
         return singleton.blockVariants.Count;
@@ -170,9 +195,17 @@ public class BlockManager : MonoBehaviour
             string newBlockType = getBlockVariant(blockVariant).getBlockType();
             string[] sBTs = parent.getBlockVariant().getSubBlockTypes();
 
-            if (sBTs[subBlockIndex] != ANY && sBTs[subBlockIndex] != newBlockType)
+            if (sBTs[subBlockIndex] == CLASS_BODY)
             {
-                Debug.Log("This is not the correct block type for this area.");
+                if (newBlockType != FIELD && newBlockType != METHOD)
+                {
+                    Debug.Log("Only fields, methods and constructors may go in the class body.");
+                    return;
+                }
+            }
+            else if (sBTs[subBlockIndex] != ANY && sBTs[subBlockIndex] != newBlockType)
+            {
+                Debug.Log(sBTs[subBlockIndex] + " block expected, not " + newBlockType + ".");
                 return;
             }
         }
@@ -191,8 +224,7 @@ public class BlockManager : MonoBehaviour
         // draw the blocks
         // TODO: draw blocks should be in blocks, go recursively to highest, then down
         Window2D window = parent.getWindow2D();
-        if (window != null)
-            ((EditWindow)window).drawBlocks();
+        if (window != null) ((EditWindow)window).drawBlocks();
     }
 
 

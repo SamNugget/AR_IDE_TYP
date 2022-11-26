@@ -35,6 +35,5 @@ public class ToolsButtonManager : ButtonManager2D
         Window2D toolsWindow = GetComponent<Window2D>();
         toolsWindow.setWidth(width); toolsWindow.setHeight(1);
         toolsWindow.resizeWindow();
-        Debug.Log(width);
     }
 }

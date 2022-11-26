@@ -11,9 +11,11 @@ public class EditButtonManager : ButtonManager2D
     private List<Transform> blockButtons = new List<Transform>();
     private List<Transform> variableButtons = new List<Transform>();
 
+    [SerializeField] private int variantsToExclude;
+
     protected override void distributeButtons()
     {
-        int noOfButtons = BlockManager.getNoOfBlockVariants() - 2;
+        int noOfButtons = BlockManager.getNoOfBlockVariants() - variantsToExclude;
 
         string[] buttonLabels = new string[noOfButtons];
         char[] actions = new char[noOfButtons];
@@ -21,7 +23,7 @@ public class EditButtonManager : ButtonManager2D
 
         for (int i = 0; i < noOfButtons; i++)
         {
-            int variantIndex = i + 2;
+            int variantIndex = i + variantsToExclude;
 
             BlockManager.BlockVariant bV = BlockManager.getBlockVariant(variantIndex);
             buttonLabels[i] = bV.getName();

@@ -30,7 +30,21 @@ public class Block : MonoBehaviour
 
         if (subBlockVariants == null)
         {
-            subBlockVariants = new int[this.blockVariant.getSubBlockCount()]; // assumes all values zero
+            string[] subBlockTypes = this.blockVariant.getSubBlockTypes();
+            subBlockVariants = new int[subBlockTypes.Length];
+            for (int i = 0; i < subBlockTypes.Length; i++)
+            {
+                if (subBlockTypes[i].Equals(BlockManager.ACCESS_MODIFIER))
+                {
+                    BlockManager.BlockVariant bV = BlockManager.getBlockVariant("Public");
+                    int bVI = BlockManager.getBlockVariantIndex(bV);
+                    subBlockVariants[i] = bVI; // special AM block
+                }
+                else
+                {
+                    subBlockVariants[i] = 0; // empty block
+                }
+            }
         }
         else if (subBlockVariants.Length != this.blockVariant.getSubBlockCount())
         {
@@ -74,21 +88,24 @@ public class Block : MonoBehaviour
         string[] lines = blockVariant.getLines();
         int[,] subBlockPositions = blockVariant.getSubBlockPositions();
 
+        Debug.Log(blockVariant.getName() + " " + subBlockPositions.GetLength(0));
         for (int i = 0; i < subBlockPositions.GetLength(0); i++)
         {
+            Block block = subBlocks[i];
+
             int currentLine = subBlockPositions[i, 0];
             int posInLine = subBlockPositions[i, 1];
 
             // split line into two strings, one before @ and one after @
-            string before = lines[currentLine].Substring(0, posInLine);
+            string before = lines[currentLine].Substring(0, posInLine + 1);
             string after = lines[currentLine].Substring(posInLine + 3);
 
             // create a blank area which subblocks[i] will be on top
             // if this is a multi-line block
-            string newLine = before + new string(' ', subBlocks[i].getWidth()) + after;
-            if (subBlocks[i].getHeight() > 1)
+            string newLine = before + new string(' ', block.getWidth() - 1) + after;
+            if (block.getHeight() > 1)
             {
-                lines[currentLine] = new string('\n', subBlocks[i].getHeight() - 1) + newLine;
+                lines[currentLine] = newLine + new string('\n', block.getHeight() - 1);
             }
             // if this is a single-line block
             else
@@ -101,14 +118,14 @@ public class Block : MonoBehaviour
 
             // move subblock
             Vector3 sBP = FontManager.lettersAndLinesToVector(posInLine, -(currentLine + extraHeight));
-            sBP.z = subBlocks[i].transform.localPosition.z;
-            subBlocks[i].transform.localPosition = sBP;
+            sBP.z = block.transform.localPosition.z;
+            block.transform.localPosition = sBP;
 
             // update width and height
             if (lines[currentLine].IndexOf('\n') >= 0)
             {
                 // increment height
-                extraHeight += (subBlocks[i].getHeight() - 1);
+                extraHeight += (block.getHeight() - 1);
 
                 // compute width
                 string[] split = lines[currentLine].Split('\n');
@@ -132,11 +149,14 @@ public class Block : MonoBehaviour
 
         // flatten into a single string
         string text = "";
-        foreach (string line in lines)
+        for (int i = 0; i < lines.Length; i++)
         {
-            text += line;
-            if (line != lines[lines.Length - 1]) text += '\n';
+            lines[i] = lines[i].Replace('@', ' ');
+            text += lines[i];
+            if (i != lines.Length - 1) text += '\n';
         }
+
+        // get rid of all @s, we had to keep them for subBlockPositions
         textBox.text = text;
     }
 
