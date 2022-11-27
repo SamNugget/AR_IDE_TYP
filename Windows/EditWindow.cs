@@ -27,10 +27,10 @@ public class EditWindow : Window2D
         masterBlock.setSpecialChildBlock(variantIndex, enabled);
     }
 
-    public string getCode()
+    public void saveCode()
     {
-        // TODO: update so recursive
-        return masterBlock.getText();
+        string code = masterBlock.getBlockText(true);
+        SaveSystem.saveCode(name, code);
     }
 
 
@@ -40,11 +40,7 @@ public class EditWindow : Window2D
         masterBlock = Instantiate(BlockManager.blockFab, transform).transform.GetComponent<Block>();
         masterBlock.initialise(BlockManager.getBlockVariantIndex("Window Block"));
         masterBlock.drawBlock();
-    }
 
-    void Update()
-    {
-        // TODO: rm this
-        resizeWindow();
+        base.Start();
     }
 }

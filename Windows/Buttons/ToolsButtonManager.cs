@@ -23,8 +23,8 @@ public class ToolsButtonManager : ButtonManager2D
         data[1] = null;
 
         // visualise button
-        buttonLabels[2] = "Link";
-        actions[2] = 'Z';
+        buttonLabels[2] = "Save";
+        actions[2] = ActionManager.SAVE_CODE;
         data[2] = null;
 
         List<Transform> buttons = distributeHorizontally(buttonLabels, actions, data);

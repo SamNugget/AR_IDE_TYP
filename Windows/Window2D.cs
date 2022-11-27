@@ -5,7 +5,7 @@ using TMPro;
 
 public class Window2D : MonoBehaviour
 {
-    [SerializeField] private string name = "i_am_a_title";
+    [SerializeField] protected string name = "i_am_a_title";
 
     [SerializeField] private int width = 20;
     public void setWidth(int w) { width = w; }
@@ -39,7 +39,7 @@ public class Window2D : MonoBehaviour
         transform.localScale = new Vector3(scale, scale, scale);
     }*/
 
-    void Start()
+    protected void Start()
     {
         resizeWindow();
     }

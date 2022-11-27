@@ -121,6 +121,13 @@ public class Block : MonoBehaviour
     // fills text box with text, updates width and height, and moves subblocks
     private void populateTextBox()
     {
+        string text = getBlockText();
+
+        textBox.text = text;
+    }
+
+    public string getBlockText(bool recursive = false)
+    {
         width = blockVariant.getWidth();
         height = blockVariant.getHeight();
         int extraHeight = 0;
@@ -139,18 +146,24 @@ public class Block : MonoBehaviour
             string before = lines[currentLine].Substring(0, posInLine + 1);
             string after = lines[currentLine].Substring(posInLine + 3);
 
-            // create a blank area which subblocks[i] will be on top
-            // if this is a multi-line block
-            string newLine = before + new string(' ', block.getWidth() - 1) + after;
-            if (block.getHeight() > 1)
+            if (recursive)
             {
-                lines[currentLine] = newLine + new string('\n', block.getHeight() - 1);
+                lines[currentLine] = before + block.getBlockText(true) + after;
             }
-            // if this is a single-line block
-            else
+            else // create a blank area which subblocks[i] will be on top
             {
-                // e.g.,             "    " + "\n\n        " + ";"
-                lines[currentLine] = newLine;
+                // if this is a multi-line block
+                string newLine = before + new string(' ', block.getWidth() - 1) + after;
+                if (block.getHeight() > 1)
+                {
+                    lines[currentLine] = newLine + new string('\n', block.getHeight() - 1);
+                }
+                // if this is a single-line block
+                else
+                {
+                    // e.g.,             "    " + "\n\n        " + ";"
+                    lines[currentLine] = newLine;
+                }
             }
 
 
@@ -190,13 +203,28 @@ public class Block : MonoBehaviour
         string text = "";
         for (int i = 0; i < lines.Length; i++)
         {
-            lines[i] = lines[i].Replace('@', ' ');
+            // get rid of all @s, we had to keep them for subBlockPositions
+            if (recursive)
+            {
+                // remove @
+                int j = lines[i].IndexOf('@');
+                while (j >= 0)
+                {
+                    string before = (j == 0 ? "" : lines[i].Substring(0, j - 1));
+                    string after = lines[i].Substring(j + 1);
+                    lines[i] = before + after;
+
+                    j = lines[i].IndexOf('@');
+                }
+            }
+            else lines[i] = lines[i].Replace('@', ' '); // replace @ with space
+
+            // add to flattened
             text += lines[i];
             if (i != lines.Length - 1) text += '\n';
         }
 
-        // get rid of all @s, we had to keep them for subBlockPositions
-        textBox.text = text;
+        return text;
     }
 
     // resizes this block

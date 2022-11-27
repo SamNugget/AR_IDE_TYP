@@ -23,6 +23,7 @@ public class ActionManager : MonoBehaviour
     public readonly static char DELETE_SELECT = 'd';
     public readonly static char BLOCK_CLICKED = 'B';
     public readonly static char INSERT_LINE = 'I';
+    public readonly static char SAVE_CODE = 'S';
 
 
     //                  |placement  |deletion   |empty replace      |split  |no action              |place in ANY
@@ -101,6 +102,7 @@ public class ActionManager : MonoBehaviour
 
 
 
+                bool codeModified = true;
                 // check for special types first
                 if (type.Equals(BlockManager.ACCESS_MODIFIER))
                 {
@@ -146,15 +148,22 @@ public class ActionManager : MonoBehaviour
                     }
                     BlockManager.spawnBlock(0, clicked);
                 }
+                else codeModified = false; // if dropped out, no changes
 
 
 
+                if (codeModified) edit.setTitleTextMessage("*");
             }
             else if (action == INSERT_LINE)
             {
                 edit.setCollidersEnabled(false);
                 edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
                 setCurrentAction(action);
+            }
+            else if (action == SAVE_CODE)
+            {
+                edit.saveCode();
+                edit.setTitleTextMessage("Saved");
             }
             else Debug.Log("Action " + action + " was not recognised.");
 
