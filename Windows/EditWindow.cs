@@ -17,9 +17,9 @@ public class EditWindow : Window2D
         // TODO: don't allow blocks to spill
     }
 
-    public void setCollidersEnabled(bool enabled)
+    public void setCollidersEnabled(bool enabled, int variantToMask = -1)
     {
-        masterBlock.setColliderEnabled(enabled);
+        masterBlock.setColliderEnabled(enabled, variantToMask);
     }
 
     public void setSpecialChildBlocks(int variantIndex, bool enabled)

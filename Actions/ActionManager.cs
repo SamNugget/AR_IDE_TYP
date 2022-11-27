@@ -74,6 +74,7 @@ public class ActionManager : MonoBehaviour
 
 
 
+            // return the edit window back to normal
             if (currentAction == INSERT_LINE)
             {
                 if (action != BLOCK_CLICKED && action != INSERT_LINE)
@@ -82,7 +83,17 @@ public class ActionManager : MonoBehaviour
                     edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
                 }
             }
+            if (currentAction == DELETE_SELECT)
+            {
+                if (action != BLOCK_CLICKED && action != DELETE_SELECT)
+                {
+                    edit.setCollidersEnabled(true);
+                }
+            }
 
+
+
+            // handle actions
             if (action == PLACE_SELECT)
             {
                 int variantIndex = (int)data;
@@ -92,6 +103,7 @@ public class ActionManager : MonoBehaviour
             else if (action == DELETE_SELECT)
             {
                 setCurrentAction(action);
+                edit.setCollidersEnabled(false, 0);
             }
             else if (action == BLOCK_CLICKED)
             {
@@ -147,6 +159,7 @@ public class ActionManager : MonoBehaviour
                         return;
                     }
                     BlockManager.spawnBlock(0, clicked);
+                    edit.setCollidersEnabled(false, 0);
                 }
                 else codeModified = false; // if dropped out, no changes
 

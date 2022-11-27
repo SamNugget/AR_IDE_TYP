@@ -76,12 +76,13 @@ public class Block : MonoBehaviour
         resizeBlock();
     }
 
-    public void setColliderEnabled(bool enabled)
+    public void setColliderEnabled(bool enabled, int variantToMask = -1)
     {
         foreach (Block subBlock in subBlocks)
-            subBlock.setColliderEnabled(enabled);
+            subBlock.setColliderEnabled(enabled, variantToMask);
 
-        GetComponentInChildren<Collider>().enabled = enabled;
+        if (variantToMask < 0 || variantToMask == BlockManager.getBlockVariantIndex(blockVariant))
+            GetComponentInChildren<Collider>().enabled = enabled;
     }
 
     public void setSpecialChildBlock(int variantIndex, bool enabled)
