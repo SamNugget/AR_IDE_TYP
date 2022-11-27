@@ -18,12 +18,12 @@ public class ToolsButtonManager : ButtonManager2D
         data[0] = null;
 
         // link button
-        buttonLabels[1] = "Link";
-        actions[1] = 'Z';
+        buttonLabels[1] = "Insert Line";
+        actions[1] = ActionManager.INSERT_LINE;
         data[1] = null;
 
         // visualise button
-        buttonLabels[2] = "Visualise";
+        buttonLabels[2] = "Link";
         actions[2] = 'Z';
         data[2] = null;
 

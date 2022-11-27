@@ -10,6 +10,8 @@ public class BlockManager : MonoBehaviour
     // special
     public readonly static string EMPTY = "EY";
     public readonly static string ANY = "AY";
+    public readonly static string SPLITTER = "SR";
+    public readonly static string INSERT_LINE = "IL";
 
     // class (TODO: struct)
     public readonly static string CLASS_BODY = "CB";
@@ -53,6 +55,8 @@ public class BlockManager : MonoBehaviour
 
         [SerializeField] private Color color;
 
+        [SerializeField] private bool splittable;
+
 
         // DEFAULT VALUES, WILL BE CHANGED IN INSTANCE OF BLOCK
         // an array containing the text for each line in the block. '@BT' marks an input field
@@ -87,6 +91,8 @@ public class BlockManager : MonoBehaviour
         {
             return new Color(color.r, color.g, color.b, color.a);
         }
+
+        public bool getSplittable() { return splittable; }
 
         // DEFAULT VALUES GET METHODS
         public string[] getLines()
@@ -161,6 +167,11 @@ public class BlockManager : MonoBehaviour
             if (bV.getName().Equals(name)) return bV;
         return null;
     }
+    public static int getBlockVariantIndex(string name)
+    {
+        BlockVariant bV = getBlockVariant(name);
+        return getBlockVariantIndex(bV);
+    }
     public static int getBlockVariantIndex(BlockVariant bV)
     {
         return singleton.blockVariants.IndexOf(bV);
@@ -218,14 +229,42 @@ public class BlockManager : MonoBehaviour
         // reconfigure parent
         parent.replaceSubBlock(newBlock, subBlockIndex);
 
-        // destroy old block
-        Destroy(toReplace.gameObject);
+        // draw the blocks
+        // TODO: draw blocks should be in blocks, go recursively to highest, then down
+        Window2D window = parent.getWindow2D();
+        if (window != null) ((EditWindow)window).drawBlocks();
+    }
+
+    public static void splitBlock(Block toSplit)
+    {
+        // get info from toSplit
+        Block parent = toSplit.getParent();
+        if (parent == null)
+        {
+            Debug.Log("Can't split the master block.");
+            return;
+        }
+        int subBlockIndex = parent.getSubBlockIndex(toSplit);
+
+        // make splitter
+        Block splitter = Instantiate(blockFab, parent.transform).GetComponent<Block>();
+        splitter.transform.position = toSplit.transform.position;
+        splitter.initialise(getBlockVariantIndex("Splitter"));
+
+        // reconfigure parent
+        parent.replaceSubBlock(splitter, subBlockIndex, false);
+
+        // move toSplit into splitter
+        toSplit.transform.parent = splitter.transform;
+        toSplit.transform.localPosition += blockFab.transform.position;
+        splitter.replaceSubBlock(toSplit, 0);
 
         // draw the blocks
         // TODO: draw blocks should be in blocks, go recursively to highest, then down
         Window2D window = parent.getWindow2D();
         if (window != null) ((EditWindow)window).drawBlocks();
     }
+
 
 
 

@@ -25,6 +25,7 @@ public class Block : MonoBehaviour
     {
         this.blockVariant = BlockManager.getBlockVariant(blockVariant);
         this.subBlocks = new List<Block>();
+        this.gameObject.name = this.blockVariant.getName();
 
 
 
@@ -34,16 +35,13 @@ public class Block : MonoBehaviour
             subBlockVariants = new int[subBlockTypes.Length];
             for (int i = 0; i < subBlockTypes.Length; i++)
             {
+                int bVI = 0; // empty block by default
                 if (subBlockTypes[i].Equals(BlockManager.ACCESS_MODIFIER))
-                {
-                    BlockManager.BlockVariant bV = BlockManager.getBlockVariant("Public");
-                    int bVI = BlockManager.getBlockVariantIndex(bV);
-                    subBlockVariants[i] = bVI; // special AM block
-                }
-                else
-                {
-                    subBlockVariants[i] = 0; // empty block
-                }
+                    bVI = BlockManager.getBlockVariantIndex("Public"); // special AM block
+                else if (subBlockTypes[i].Equals(BlockManager.USING))
+                    bVI = BlockManager.getBlockVariantIndex("Using"); // special UG block
+
+                subBlockVariants[i] = bVI;
             }
         }
         else if (subBlockVariants.Length != this.blockVariant.getSubBlockCount())
@@ -78,6 +76,48 @@ public class Block : MonoBehaviour
         resizeBlock();
     }
 
+    public void setColliderEnabled(bool enabled)
+    {
+        foreach (Block subBlock in subBlocks)
+            subBlock.setColliderEnabled(enabled);
+
+        GetComponentInChildren<Collider>().enabled = enabled;
+    }
+
+    public void setSpecialChildBlock(int variantIndex, bool enabled)
+    {
+        foreach (Block subBlock in subBlocks)
+            subBlock.setSpecialChildBlock(variantIndex, enabled);
+
+        Vector3 localPos = Vector3.zero;
+        if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
+        {
+            if (blockVariant.getSplittable() == false) return;
+            localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
+        }
+        
+
+        if (enabled)
+        {
+            // spawn special block
+            Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
+            subBlock.localPosition = localPos;
+            Block subBlockScript = subBlock.GetComponent<Block>();
+            subBlockScript.initialise(variantIndex);
+            subBlockScript.drawBlock();
+        }
+        else
+        {
+            // remove special block
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                Block b = transform.GetChild(i).GetComponent<Block>();
+                if (b != null && BlockManager.getBlockVariantIndex(b.getBlockVariant()) == variantIndex)
+                    Destroy(b.gameObject);
+            }
+        }
+    }
+
     // fills text box with text, updates width and height, and moves subblocks
     private void populateTextBox()
     {
@@ -88,7 +128,6 @@ public class Block : MonoBehaviour
         string[] lines = blockVariant.getLines();
         int[,] subBlockPositions = blockVariant.getSubBlockPositions();
 
-        Debug.Log(blockVariant.getName() + " " + subBlockPositions.GetLength(0));
         for (int i = 0; i < subBlockPositions.GetLength(0); i++)
         {
             Block block = subBlocks[i];
@@ -183,8 +222,9 @@ public class Block : MonoBehaviour
         return subBlocks.IndexOf(b);
     }
 
-    public void replaceSubBlock(Block b, int index)
+    public void replaceSubBlock(Block b, int index, bool delete = true)
     {
+        if (delete) Destroy(subBlocks[index].gameObject);
         subBlocks[index] = b;
     }
 

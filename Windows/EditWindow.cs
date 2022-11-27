@@ -17,6 +17,16 @@ public class EditWindow : Window2D
         // TODO: don't allow blocks to spill
     }
 
+    public void setCollidersEnabled(bool enabled)
+    {
+        masterBlock.setColliderEnabled(enabled);
+    }
+
+    public void setSpecialChildBlocks(int variantIndex, bool enabled)
+    {
+        masterBlock.setSpecialChildBlock(variantIndex, enabled);
+    }
+
     public string getCode()
     {
         // TODO: update so recursive
@@ -28,7 +38,7 @@ public class EditWindow : Window2D
     void Start()
     {
         masterBlock = Instantiate(BlockManager.blockFab, transform).transform.GetComponent<Block>();
-        masterBlock.initialise(1);
+        masterBlock.initialise(BlockManager.getBlockVariantIndex("Window Block"));
         masterBlock.drawBlock();
     }
 

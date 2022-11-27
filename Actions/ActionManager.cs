@@ -15,12 +15,14 @@ public class ActionManager : MonoBehaviour
             string blockName = BlockManager.getBlockVariant(blockToPlace).getName();
             tools.setTitleTextMessage("Placing " + blockName + " block...");
         }
-        if (currentAction == DELETE_SELECT) tools.setTitleTextMessage("Deleting...");
+        else if (currentAction == DELETE_SELECT) tools.setTitleTextMessage("Deleting...");
+        else if (currentAction == INSERT_LINE) tools.setTitleTextMessage("Inserting lines...");
     }
 
-    public static char PLACE_SELECT = 'p';
-    public static char DELETE_SELECT = 'd';
-    public static char BLOCK_CLICKED = 'B';
+    public readonly static char PLACE_SELECT = 'p';
+    public readonly static char DELETE_SELECT = 'd';
+    public readonly static char BLOCK_CLICKED = 'B';
+    public readonly static char INSERT_LINE = 'I';
 
 
     //                  |placement  |deletion   |empty replace      |split  |no action              |place in ANY
@@ -54,10 +56,14 @@ public class ActionManager : MonoBehaviour
     // tools window for feedback
     private static Window2D tools;
     [SerializeField] private Window2D toolsWindow;
+    // edit window
+    private static EditWindow edit;
+    [SerializeField] private EditWindow editWindow;
 
     void Awake()
     {
         tools = toolsWindow;
+        edit = editWindow;
     }
 
     public static void callAction(char action, object data)
@@ -66,6 +72,15 @@ public class ActionManager : MonoBehaviour
         {
 
 
+
+            if (currentAction == INSERT_LINE)
+            {
+                if (action != BLOCK_CLICKED && action != INSERT_LINE)
+                {
+                    edit.setCollidersEnabled(true);
+                    edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
+                }
+            }
 
             if (action == PLACE_SELECT)
             {
@@ -82,6 +97,7 @@ public class ActionManager : MonoBehaviour
                 Block clicked = (Block)data;
                 BlockManager.BlockVariant variant = clicked.getBlockVariant();
                 string type = variant.getBlockType();
+                Debug.Log("Clicked " + type);
 
 
 
@@ -105,7 +121,12 @@ public class ActionManager : MonoBehaviour
                     // keyboard or special list
                     // namespaces clutter block list
                 }
-                
+                else if (type.Equals(BlockManager.INSERT_LINE))
+                {
+                    Block parent = clicked.getParent();
+                    BlockManager.splitBlock(parent);
+                }
+
 
 
                 // apply current action if not special type
@@ -125,6 +146,12 @@ public class ActionManager : MonoBehaviour
 
 
 
+            }
+            else if (action == INSERT_LINE)
+            {
+                edit.setCollidersEnabled(false);
+                edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
+                setCurrentAction(action);
             }
             else Debug.Log("Action " + action + " was not recognised.");
 
