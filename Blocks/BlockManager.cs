@@ -203,10 +203,24 @@ public class BlockManager : MonoBehaviour
         // if replacing an empty block, check it is correct block type for parent
         if (singleton.safeMode && toReplace.getBlockVariant().getBlockType().Equals(EMPTY))
         {
-            string newBlockType = getBlockVariant(blockVariant).getBlockType();
-            string[] sBTs = parent.getBlockVariant().getSubBlockTypes();
+            BlockVariant parentVariant = parent.getBlockVariant();
+            int index = subBlockIndex;
 
-            if (sBTs[subBlockIndex] == CLASS_BODY)
+            // splitters should take restrictions of parent
+            if (parentVariant == getBlockVariant("Splitter"))
+            {
+                Block highestSplitter = getChildOfNonSplitter(parent);
+
+                parentVariant = highestSplitter.getParent().getBlockVariant();
+                index = highestSplitter.getParent().getSubBlockIndex(highestSplitter);
+            }
+
+
+
+            string newBlockType = getBlockVariant(blockVariant).getBlockType();
+            string[] sBTs = parentVariant.getSubBlockTypes();
+
+            if (sBTs[index] == CLASS_BODY)
             {
                 if (newBlockType != FIELD && newBlockType != METHOD)
                 {
@@ -214,9 +228,9 @@ public class BlockManager : MonoBehaviour
                     return;
                 }
             }
-            else if (sBTs[subBlockIndex] != ANY && sBTs[subBlockIndex] != newBlockType)
+            else if (sBTs[index] != ANY && sBTs[index] != newBlockType)
             {
-                Debug.Log(sBTs[subBlockIndex] + " block expected, not " + newBlockType + ".");
+                Debug.Log(sBTs[index] + " block expected, not " + newBlockType + ".");
                 return;
             }
         }
@@ -303,6 +317,22 @@ public class BlockManager : MonoBehaviour
         }
 
         return subBlockPositions;
+    }
+
+
+
+    private static Block getChildOfNonSplitter(Block b)
+    {
+        Block highestSplitter = b;
+        for (int i = 0; highestSplitter != null; i++)
+        {
+            Block newParent = highestSplitter.getParent();
+            if (newParent.getBlockVariant() != getBlockVariant("Splitter")) return highestSplitter;
+
+            highestSplitter = newParent;
+        }
+
+        return null;
     }
 
 

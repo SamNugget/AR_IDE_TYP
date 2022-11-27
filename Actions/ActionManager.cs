@@ -125,6 +125,9 @@ public class ActionManager : MonoBehaviour
                 {
                     Block parent = clicked.getParent();
                     BlockManager.splitBlock(parent);
+                    edit.setCollidersEnabled(false);
+                    edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
+                    edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
                 }
 
 
