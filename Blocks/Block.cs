@@ -40,6 +40,8 @@ public class Block : MonoBehaviour
                     bVI = BlockManager.getBlockVariantIndex("Public"); // special AM block
                 else if (subBlockTypes[i].Equals(BlockManager.USING))
                     bVI = BlockManager.getBlockVariantIndex("Using"); // special UG block
+                else if (subBlockTypes[i].Equals(BlockManager.VARIABLE_DECLARATION))
+                    bVI = BlockManager.getBlockVariantIndex("Variable"); // special VD block
 
                 subBlockVariants[i] = bVI;
             }
@@ -129,7 +131,7 @@ public class Block : MonoBehaviour
 
     public string getBlockText(bool recursive = false)
     {
-        width = blockVariant.getWidth();
+        width = -1;
         height = blockVariant.getHeight();
         int extraHeight = 0;
 
@@ -162,7 +164,6 @@ public class Block : MonoBehaviour
                 // if this is a single-line block
                 else
                 {
-                    // e.g.,             "    " + "\n\n        " + ";"
                     lines[currentLine] = newLine;
                 }
             }
@@ -197,6 +198,7 @@ public class Block : MonoBehaviour
             if (i + 1 < subBlockPositions.GetLength(0) && subBlockPositions[i + 1, 0] == currentLine)
                 subBlockPositions = BlockManager.getSubBlockPositions(lines);
         }
+        if (width < 0) width = blockVariant.getWidth();
         height += extraHeight;
 
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Delete : Mode
 {
-    public Delete(char c) : base(c) { }
+    public Delete(char c) : base(c, /*multi-select:*/true) { }
 
     public override void onCall(object data)
     {

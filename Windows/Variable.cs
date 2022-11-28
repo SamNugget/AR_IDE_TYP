@@ -2,8 +2,14 @@ using System;
 
 public class Variable
 {
-    private string name;
-    private Type type;
-    private Block declarationBlock;
-    private BlockManager.BlockVariant blockVariant;
+    public string name;
+    public Block declarationBlock;
+    public BlockManager.BlockVariant blockVariant;
+
+    public Variable(string name, Block declarationBlock, BlockManager.BlockVariant blockVariant)
+    {
+        this.name = name;
+        this.declarationBlock = declarationBlock;
+        this.blockVariant = blockVariant;
+    }
 }

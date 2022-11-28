@@ -7,34 +7,36 @@ using TMPro;
 
 public abstract class ButtonManager2D : MonoBehaviour
 {
-    public Transform blockButtonsParent;
-    public GameObject buttonFab;
+    [SerializeField] private GameObject buttonFab;
 
-    public float buttonSpacing;
+    [SerializeField] protected float buttonSpacing;
 
-    public bool alignRightEdge;
+    [SerializeField] protected bool alignRightEdge;
 
 
 
     protected abstract void distributeButtons();
 
-    protected List<Transform> distributeVertically(string[] buttonLabels, char[] actions, object[] data)
+    protected List<Transform> distributeVertically(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
     {
-        return distribute(buttonLabels, actions, data, false);
+        return distribute(buttonLabels, actions, data, false, parent);
     }
 
-    protected List<Transform> distributeHorizontally(string[] buttonLabels, char[] actions, object[] data)
+    protected List<Transform> distributeHorizontally(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
     {
-        return distribute(buttonLabels, actions, data, true);
+        return distribute(buttonLabels, actions, data, true, parent);
     }
 
-    private List<Transform> distribute(string[] buttonLabels, char[] actions, object[] data, bool horizontal)
+    private List<Transform> distribute(string[] buttonLabels, char[] actions, object[] data, bool horizontal, Transform parent)
     {
         if (buttonLabels.Length != actions.Length || buttonLabels.Length != data.Length)
         {
             Debug.Log("All three input parameter arrays must be the same length.");
             return null;
         }
+
+
+        if (parent == null) parent = transform;
 
 
         float textHeight = FontManager.lineHeight;
@@ -44,7 +46,7 @@ public abstract class ButtonManager2D : MonoBehaviour
             float width = FontManager.lettersAndLinesToVector(buttonLabels[i].Length + 1, 0).x;
             float x = alignRightEdge ? -(width / 2f) : (width / 2f);
 
-            Vector3 position;
+            Vector2 position;
             if (horizontal)
             {
                 if (buttons.Count > 0)
@@ -56,27 +58,27 @@ public abstract class ButtonManager2D : MonoBehaviour
                     position = buttons[buttons.Count - 1].localPosition;
                     position.x += x;
                 }
-                else position = new Vector3(x, -(textHeight / 2f));
+                else position = new Vector2(x, -(textHeight / 2f));
             }
             else
             {
                 position = new Vector2(x, -(i * (textHeight + buttonSpacing) + (textHeight / 2f)));
             }
 
-            Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], position);
+            Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], position, parent);
             buttons.Add(newButton);
         }
 
         return buttons;
     }
 
-    private Transform spawnButton(string buttonLabel, char action, object data, Vector2 position)
+    protected Transform spawnButton(string buttonLabel, char action, object data, Vector2 position, Transform parent)
     {
         float textHeight = FontManager.lineHeight;
         float width = FontManager.lettersAndLinesToVector(buttonLabel.Length + 1, 0).x;
 
         // spawn, position and scale button
-        RectTransform newButton = Instantiate(buttonFab, blockButtonsParent).GetComponent<RectTransform>();
+        RectTransform newButton = Instantiate(buttonFab, parent).GetComponent<RectTransform>();
         newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textHeight * 100f);
         newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width * 100f);
         newButton.localPosition = position;
@@ -106,15 +108,24 @@ public abstract class ButtonManager2D : MonoBehaviour
         Transform toReplace = buttons[index + 1];
         if (toReplace != null)
         {
-            Vector3 change = toRemove.position - toReplace.position;
+            Vector2 change = toRemove.position - toReplace.position;
             // shift all the buttons over
             for (int i = index + 1; i < buttons.Count; i++)
-                buttons[i].position += change;
+                buttons[i].position += (Vector3)change;
         }
 
 
         // delete button
         Destroy(toRemove.gameObject);
+    }
+
+    protected void deleteButtons(List<Transform> buttons)
+    {
+        for (int i = buttons.Count - 1; i >= 0; i--)
+        {
+            Destroy(buttons[i].gameObject);
+            buttons.RemoveAt(i);
+        }
     }
 
     void Start()

@@ -1,9 +1,11 @@
 public class InsertLine : Mode
 {
-    public InsertLine(char c) : base(c) { }
+    public InsertLine(char c) : base(c, /*multi-select:*/false) { }
 
     public override void onCall(object data)
     {
+        if (!(data is Block)) return;
+
         Block parent = ((Block)data).getParent();
         BlockManager.splitBlock(parent);
 

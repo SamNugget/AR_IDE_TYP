@@ -9,29 +9,46 @@ public class ActionManager : MonoBehaviour
     private static Mode currentMode = null;
     private static void setCurrentMode(Mode mode, object data)
     {
-        if (mode != currentMode)
-        {
-            if (currentMode != null) currentMode.onDeselect();
-
-            currentMode = mode;
-        }
-
-        if (mode != null)
+        if (mode == currentMode) // if this is an already active mode
         {
             try
             {
-                mode.onSelect(data);
-                tools.setTitleTextMessage(mode.getToolsWindowMessage());
+                if (mode != null)
+                {
+                    if (mode.getMultiSelect()) mode.onSelect(data);
+                    else mode.onCall(data);
+                }
+
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Err calling mode.");
+
+                return;
+            }
+        }
+        else // if this is not active
+        {
+            if (currentMode != null) currentMode.onDeselect(); // deselect current mode
+
+            currentMode = mode; // switch state
+
+            try
+            {
+                if (mode != null) mode.onSelect(data);
             }
             catch (Exception e)
             {
                 Debug.Log("Err selecting mode.");
 
                 currentMode = null;
-                tools.setTitleTextMessage("");
+                tools.setTitleTextMessage("ERR");
+
                 return;
             }
         }
+
+        tools.setTitleTextMessage(mode.getToolsWindowMessage());
     }
     public static Mode getCurrentMode() { return currentMode; }
 
@@ -40,6 +57,7 @@ public class ActionManager : MonoBehaviour
     public readonly static char INSERT_LINE = 'i'; // mode
     public readonly static char BLOCK_CLICKED = 'B';
     public readonly static char SAVE_CODE = 'S';
+    public readonly static char CREATE_VARIABLE = 'V'; // mode
 
     private static Act[] actions;
     private static Act getAction(char symbol)
@@ -85,12 +103,13 @@ public class ActionManager : MonoBehaviour
         tools = _toolsWindow;
         edit = _editWindow;
 
-        actions = new Act[5];
+        actions = new Act[6];
         actions[0] = new Place(PLACE_SELECT);
         actions[1] = new Delete(DELETE_SELECT);
         actions[2] = new InsertLine(INSERT_LINE);
         actions[3] = new BlockClicked(BLOCK_CLICKED);
         actions[4] = new SaveCode(SAVE_CODE);
+        actions[5] = new CreateVariable(CREATE_VARIABLE);
     }
 
 

@@ -27,12 +27,12 @@ public class ToolsButtonManager : ButtonManager2D
         actions[2] = ActionManager.SAVE_CODE;
         data[2] = null;
 
-        List<Transform> buttons = distributeHorizontally(buttonLabels, actions, data);
+        List<Transform> buttons = distributeHorizontally(buttonLabels, actions, data, transform);
 
         int width = 1;
         foreach (string label in buttonLabels) width += label.Length + 1;
 
-        Window2D toolsWindow = GetComponent<Window2D>();
+        Window2D toolsWindow = GetComponentInParent<Window2D>();
         toolsWindow.setWidth(width); toolsWindow.setHeight(1);
         toolsWindow.resizeWindow();
     }

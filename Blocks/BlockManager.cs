@@ -24,7 +24,9 @@ public class BlockManager : MonoBehaviour
 
     // for inside methods and constructors
     public readonly static string BODY = "BY"; // Class, if statements, etc.
-    public readonly static string VARIABLE = "VR"; // @TP *name*
+    public readonly static string VARIABLE_DECLARATION = "VD"; // @TP *name*
+    
+    public readonly static string VARIABLE_NAME = "VN"; // @TP *name*
 
     // for if statements, while loops
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
@@ -122,6 +124,18 @@ public class BlockManager : MonoBehaviour
             return subBlockPositions.GetLength(0);
         }
 
+
+
+        public BlockVariant(string name, string blockType, Color color, bool splittable, string[] lines)
+        {
+            this.name = name;
+            this.blockType = blockType;
+            this.color = color;
+            this.splittable = splittable;
+            this.lines = lines;
+
+            calculateInstanceVariables();
+        }
 
         public void calculateInstanceVariables()
         {
@@ -339,6 +353,18 @@ public class BlockManager : MonoBehaviour
         }
 
         return null;
+    }
+
+
+
+    [SerializeField] private Color variableColor;
+    public static BlockVariant createVariableBlock(string name)
+    {
+        string[] lines = new string[] { name };
+        BlockVariant newVariable = new BlockVariant(name, VARIABLE_NAME, singleton.variableColor, false, lines);
+        singleton.blockVariants.Add(newVariable);
+
+        return newVariable;
     }
 
 

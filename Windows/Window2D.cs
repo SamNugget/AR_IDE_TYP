@@ -9,7 +9,9 @@ public class Window2D : MonoBehaviour
 
     [SerializeField] private int width = 20;
     public void setWidth(int w) { width = w; }
+    public int getWidth() { return width; }
     [SerializeField] private int height = 10;
+    public int getHeight() { return height; }
     public void setHeight(int h) { height = h; }
 
     public void resizeWindow()

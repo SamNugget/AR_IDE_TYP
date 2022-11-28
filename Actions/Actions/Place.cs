@@ -1,6 +1,6 @@
 public class Place : Mode
 {
-    public Place(char c) : base(c) { }
+    public Place(char c) : base(c, /*multi-select:*/true) { }
 
     // which block variant to place
     private int blockToPlace = -1;

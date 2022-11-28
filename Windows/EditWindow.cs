@@ -6,7 +6,18 @@ public class EditWindow : Window2D
 {
     private Block masterBlock;
 
-    //private List<Variable> variables;
+    [SerializeField] private EditButtonManager editButtonManager;
+
+    private List<Variable> variables = new List<Variable>();
+    public List<Variable> getVariables() { return variables; }
+    public void addVariable(string name)
+    {
+        BlockManager.BlockVariant bV = BlockManager.createVariableBlock(name);
+        Variable newVariable = new Variable(name, masterBlock/*<- temp*/, bV);
+        variables.Add(newVariable);
+
+        editButtonManager.updateVariableButtons();
+    }
 
 
 
