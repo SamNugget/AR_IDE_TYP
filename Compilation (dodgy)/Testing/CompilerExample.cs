@@ -34,7 +34,7 @@ public class Test
 );
 
         var method = assembly.GetType("Test").GetMethod("Foo");
-        var del = (Action)Delegate.CreateDelegate(typeof(Action), method);
+        var del = (System.Action)Delegate.CreateDelegate(typeof(System.Action), method);
         del.Invoke();
     }
 

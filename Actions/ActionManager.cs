@@ -5,25 +5,50 @@ using UnityEngine;
 
 public class ActionManager : MonoBehaviour
 {
-    private static char currentAction = '\0';
-    private static void setCurrentAction(char action)
+    // ACTIONS
+    private static Mode currentMode = null;
+    private static void setCurrentMode(Mode mode, object data)
     {
-        currentAction = action;
-
-        if (currentAction == PLACE_SELECT)
+        if (mode != currentMode)
         {
-            string blockName = BlockManager.getBlockVariant(blockToPlace).getName();
-            tools.setTitleTextMessage("Placing " + blockName + " block...");
+            if (currentMode != null) currentMode.onDeselect();
+
+            currentMode = mode;
         }
-        else if (currentAction == DELETE_SELECT) tools.setTitleTextMessage("Deleting...");
-        else if (currentAction == INSERT_LINE) tools.setTitleTextMessage("Inserting lines...");
+
+        if (mode != null)
+        {
+            try
+            {
+                mode.onSelect(data);
+                tools.setTitleTextMessage(mode.getToolsWindowMessage());
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Err selecting mode.");
+
+                currentMode = null;
+                tools.setTitleTextMessage("");
+                return;
+            }
+        }
+    }
+    public static Mode getCurrentMode() { return currentMode; }
+
+    public readonly static char PLACE_SELECT = 'p'; // mode
+    public readonly static char DELETE_SELECT = 'd'; // mode
+    public readonly static char INSERT_LINE = 'i'; // mode
+    public readonly static char BLOCK_CLICKED = 'B';
+    public readonly static char SAVE_CODE = 'S';
+
+    private static Act[] actions;
+    private static Act getAction(char symbol)
+    {
+        foreach (Act a in actions)
+            if (a.getSymbol() == symbol) return a;
+        return null;
     }
 
-    public readonly static char PLACE_SELECT = 'p';
-    public readonly static char DELETE_SELECT = 'd';
-    public readonly static char BLOCK_CLICKED = 'B';
-    public readonly static char INSERT_LINE = 'I';
-    public readonly static char SAVE_CODE = 'S';
 
 
     //                  |placement  |deletion   |empty replace      |split  |no action              |place in ANY
@@ -38,154 +63,61 @@ public class ActionManager : MonoBehaviour
     //BODY              |           |yes        |BY                 |yes    |                       |yes
 
 
-    // placement
-    // 1. select block to place
-    // 2. place block
-    // 3. selected block == null
-
-    // delete
-    // 1. select delete
-    // 2. click any number of blocks
-    // 3. next action picked will end this action
-
-    // creating types? scope logic?
-
-
-    // which block variant to place
-    private static int blockToPlace = -1;
 
     // tools window for feedback
     private static Window2D tools;
-    [SerializeField] private Window2D toolsWindow;
+    [SerializeField] private Window2D _toolsWindow;
+    public static Window2D ToolsWindow
+    {
+        get { return tools; }
+        set { tools = value; }
+    }
     // edit window
     private static EditWindow edit;
-    [SerializeField] private EditWindow editWindow;
-
+    [SerializeField] private EditWindow _editWindow;
+    public static EditWindow EditWindow
+    {
+        get { return edit; }
+        set { edit = value; }
+    }
     void Awake()
     {
-        tools = toolsWindow;
-        edit = editWindow;
+        tools = _toolsWindow;
+        edit = _editWindow;
+
+        actions = new Act[5];
+        actions[0] = new Place(PLACE_SELECT);
+        actions[1] = new Delete(DELETE_SELECT);
+        actions[2] = new InsertLine(INSERT_LINE);
+        actions[3] = new BlockClicked(BLOCK_CLICKED);
+        actions[4] = new SaveCode(SAVE_CODE);
     }
+
+
 
     public static void callAction(char action, object data)
     {
-        try
+        Act newAction = getAction(action);
+        if (newAction == null)
         {
-
-
-
-            // return the edit window back to normal
-            if (currentAction == INSERT_LINE)
-            {
-                if (action != BLOCK_CLICKED && action != INSERT_LINE)
-                {
-                    edit.setCollidersEnabled(true);
-                    edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
-                }
-            }
-            if (currentAction == DELETE_SELECT)
-            {
-                if (action != BLOCK_CLICKED && action != DELETE_SELECT)
-                {
-                    edit.setCollidersEnabled(true);
-                }
-            }
-
-
-
-            // handle actions
-            if (action == PLACE_SELECT)
-            {
-                int variantIndex = (int)data;
-                blockToPlace = variantIndex;
-                setCurrentAction(action);
-            }
-            else if (action == DELETE_SELECT)
-            {
-                setCurrentAction(action);
-                edit.setCollidersEnabled(false, 0);
-            }
-            else if (action == BLOCK_CLICKED)
-            {
-                Block clicked = (Block)data;
-                BlockManager.BlockVariant variant = clicked.getBlockVariant();
-                string type = variant.getBlockType();
-                Debug.Log("Clicked " + type);
-
-
-
-                bool codeModified = true;
-                // check for special types first
-                if (type.Equals(BlockManager.ACCESS_MODIFIER))
-                {
-                    BlockManager.BlockVariant newVariant;
-                    if (variant.getName().Equals("Public"))
-                        newVariant = BlockManager.getBlockVariant("Private");
-                    else
-                        newVariant = BlockManager.getBlockVariant("Public");
-
-                    int nVIndex = BlockManager.getBlockVariantIndex(newVariant);
-                    BlockManager.spawnBlock(nVIndex, clicked);
-
-                    Window2D window = clicked.getWindow2D();
-                    if (window != null) ((EditWindow)window).drawBlocks();
-                }
-                else if (type.Equals(BlockManager.NAMESPACE))
-                {
-                    // keyboard or special list
-                    // namespaces clutter block list
-                }
-                else if (type.Equals(BlockManager.INSERT_LINE))
-                {
-                    Block parent = clicked.getParent();
-                    BlockManager.splitBlock(parent);
-                    edit.setCollidersEnabled(false);
-                    edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
-                    edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
-                }
-
-
-
-                // apply current action if not special type
-                else if (currentAction == PLACE_SELECT)
-                {
-                    BlockManager.spawnBlock(blockToPlace, clicked);
-                }
-                else if (currentAction == DELETE_SELECT)
-                {
-                    if (type.Equals(BlockManager.EMPTY) || type.Equals(BlockManager.ACCESS_MODIFIER))
-                    {
-                        Debug.Log("Can't delete block of this type.");
-                        return;
-                    }
-                    BlockManager.spawnBlock(0, clicked);
-                    edit.setCollidersEnabled(false, 0);
-                }
-                else codeModified = false; // if dropped out, no changes
-
-
-
-                if (codeModified) edit.setTitleTextMessage("*");
-            }
-            else if (action == INSERT_LINE)
-            {
-                edit.setCollidersEnabled(false);
-                edit.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
-                setCurrentAction(action);
-            }
-            else if (action == SAVE_CODE)
-            {
-                edit.saveCode();
-                edit.setTitleTextMessage("Saved");
-            }
-            else Debug.Log("Action " + action + " was not recognised.");
-
-
-
+            Debug.Log("Action " + action + " was not recognised.");
+            return;
         }
-        catch(Exception e)
+
+
+
+        // is this newAction a mode-selection
+        if (newAction is Mode mode)
         {
-            Debug.Log("Err calling action " + action + " with data: " + data);
+            setCurrentMode(mode, data);
+        }
+        // or immediate action
+        else
+        {
+            try { newAction.onCall(data); }
+            catch (Exception e) {
+                Debug.Log("Err calling action " + action + " with data: " + data);
+            }
         }
     }
 }

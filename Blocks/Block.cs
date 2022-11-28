@@ -211,7 +211,7 @@ public class Block : MonoBehaviour
                 int j = lines[i].IndexOf('@');
                 while (j >= 0)
                 {
-                    string before = (j == 0 ? "" : lines[i].Substring(0, j - 1));
+                    string before = (j == 0 ? "" : lines[i].Substring(0, j));
                     string after = lines[i].Substring(j + 1);
                     lines[i] = before + after;
 
