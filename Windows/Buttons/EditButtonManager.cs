@@ -96,7 +96,7 @@ public class EditButtonManager : ButtonManager2D
             float x = alignRightEdge ? -(width / 2f) : (width / 2f);
             Block declarationBlock = v.declarationBlock;
             //        vv this should instead be method, which account for things being off screen
-            float y = declarationBlock.transform.localPosition.y/* - ((FontManager.lineHeight + buttonSpacing) * i)*/;
+            float y = declarationBlock.transform.position.y - editWindow.transform.position.y;
             Vector2 position = new Vector2(x, y - (FontManager.lineHeight / 2f));
             // TODO: account for duplicates
 

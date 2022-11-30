@@ -58,6 +58,7 @@ public class ActionManager : MonoBehaviour
     public readonly static char BLOCK_CLICKED = 'B';
     public readonly static char SAVE_CODE = 'S';
     public readonly static char CREATE_VARIABLE = 'V'; // mode
+    public readonly static char CREATE_NAME = 'N'; // mode
 
     private static Act[] actions;
     private static Act getAction(char symbol)
@@ -109,7 +110,7 @@ public class ActionManager : MonoBehaviour
         actions[2] = new InsertLine(INSERT_LINE);
         actions[3] = new BlockClicked(BLOCK_CLICKED);
         actions[4] = new SaveCode(SAVE_CODE);
-        actions[5] = new CreateVariable(CREATE_VARIABLE);
+        actions[5] = new CreateName(CREATE_NAME);
     }
 
 

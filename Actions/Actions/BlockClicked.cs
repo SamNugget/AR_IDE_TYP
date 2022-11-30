@@ -36,10 +36,10 @@ public class BlockClicked : Act
             Window2D window = clicked.getWindow2D();
             if (window != null) ((EditWindow)window).drawBlocks();
         }
-        else if (type.Equals(BlockManager.NAMESPACE))
+        else if (type.Equals(BlockManager.NAME))
         {
-            // keyboard or special list
-            // namespaces clutter block list
+            int variantIndex = BlockManager.getBlockVariantIndex(variant);
+            ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);
         }
 
 

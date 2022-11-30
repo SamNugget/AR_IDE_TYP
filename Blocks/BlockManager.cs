@@ -13,28 +13,28 @@ public class BlockManager : MonoBehaviour
     public readonly static string SPLITTER = "SR";
     public readonly static string INSERT_LINE = "IL";
 
-    // class (TODO: struct)
-    public readonly static string CLASS_BODY = "CB";
-    public readonly static string FIELD = "FD"; // @AM @TP *name*
-    public readonly static string METHOD = "MD"; // @AM @TP *name*()
+    // for namespaces stuff and things
+    public readonly static string USING = "UG";
+
+    // class
+    public readonly static string CLASS_BODY = "CB"; // field or method
+    public readonly static string FIELD = "FD"; // @AM @TP @NM {}
+    public readonly static string METHOD = "MD"; // @AM @TP @NM() {}
+
+    // namespace, class name or method name
+    public readonly static string NAME = "NM";
 
     // for fields and methods
     public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
     public readonly static string TYPE = "TP"; // int, string, etc.
 
     // for inside methods and constructors
-    public readonly static string BODY = "BY"; // Class, if statements, etc.
-    public readonly static string VARIABLE_DECLARATION = "VD"; // @TP *name*
-    
-    public readonly static string VARIABLE_NAME = "VN"; // @TP *name*
-    public readonly static string METHOD_CLASS_NAME = "MC";
+    public readonly static string BODY = "BY"; // if statements, variable declaration, etc.
+    public readonly static string VARIABLE_DECLARATION = "VD"; // @TP @VN
+    public readonly static string VARIABLE_NAME = "VN";
 
     // for if statements, while loops
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
-
-    // for namespaces stuff and things
-    public readonly static string USING = "UG";
-    public readonly static string NAMESPACE = "NS"; // System, UnityEngine, etc.
 
     // TODO: structs, constructors, properties, delegates, and events
 
@@ -251,7 +251,15 @@ public class BlockManager : MonoBehaviour
                     return;
                 }
             }
-            else if (expectedType == VARIABLE_NAME)
+            else if (expectedType != ANY && expectedType != newBlockType)
+            {
+                Debug.Log(expectedType + " block expected, not " + newBlockType + ".");
+                return;
+            }
+
+
+
+            if (expectedType == VARIABLE_NAME)
             {
                 // find variable instance in window
                 EditWindow editWindow = ActionManager.EditWindow;
@@ -261,28 +269,29 @@ public class BlockManager : MonoBehaviour
                     Debug.Log("Err: variable not saved.");
                     // drop out of if and place anyways
                 }
-                // check if declared
+                // if not declared
                 else if (variable.declarationBlock == null)
                 {
                     Block declaration = parent.getParent();
                     if (declaration.getBlockVariant().getBlockType().Equals(FIELD))
                         declaration = declaration.getParent();
 
-                    variable.declarationBlock = declaration; // it has now been declared
+                    variable.declarationBlock = declaration; // declare it!
                     editWindow.drawButtons();
-                    // drop out of if and place
                 }
-                // check if in scope of declaration (walk up tree)
+                // declared, check if in scope of declaration (walk up tree)
                 else
                 {
-                    // TEMPORARY: don't place
-                    return;
+                    bool inScope = false;
+                    for (Block p = parent; p != null; p = p.getParent())
+                        if (p == variable.declarationBlock) { inScope = true; break; }
+
+                    if (inScope == false)
+                    {
+                        Debug.Log("Must be placed in scope.");
+                        return;
+                    }
                 }
-            }
-            else if (expectedType != ANY && expectedType != newBlockType)
-            {
-                Debug.Log(expectedType + " block expected, not " + newBlockType + ".");
-                return;
             }
         }
 
@@ -389,10 +398,10 @@ public class BlockManager : MonoBehaviour
 
 
     [SerializeField] private Color variableColor;
-    public static BlockVariant createVariableBlock(string name)
+    public static BlockVariant createNameBlock(string name, bool variable)
     {
         string[] lines = new string[] { name };
-        BlockVariant newVariable = new BlockVariant(name, VARIABLE_NAME, singleton.variableColor, false, lines);
+        BlockVariant newVariable = new BlockVariant(name, (variable ? VARIABLE_NAME : NAME), singleton.variableColor, false, lines);
         singleton.blockVariants.Add(newVariable);
 
         return newVariable;

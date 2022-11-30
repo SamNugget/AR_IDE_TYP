@@ -6,11 +6,12 @@ using TMPro;
 public class TextEntryWindow : Window2D
 {
     [SerializeField] private TMP_InputField inputField;
-    // TODO: more dynamic -> private char action;
+    private char action;
+    public void setAction(char a) { action = a; }
 
     public void onTextEntered()
     {
-        ActionManager.callAction(ActionManager.CREATE_VARIABLE, inputField.text);
+        ActionManager.callAction(action, inputField.text);
         inputField.text = "";
     }
 }

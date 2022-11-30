@@ -7,6 +7,10 @@ public class Delete : Mode
     public override void onCall(object data)
     {
         string type = ((Block)data).getBlockVariant().getBlockType();
+        //if (type.Equals(BlockManager.VARIABLE_NAME) || type.Equals(BlockManager.VARIABLE_DECLARATION) || type.Equals(BlockManager.FIELD))
+        //{
+        //    is the parent a variable declaration block?
+        //}
         if (type.Equals(BlockManager.EMPTY) || type.Equals(BlockManager.ACCESS_MODIFIER))
         {
             Debug.Log("Can't delete blocks of this type.");

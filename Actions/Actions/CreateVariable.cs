@@ -1,10 +1,10 @@
-using UnityEngine;
+/*using UnityEngine;
 
 public class CreateVariable : Mode
 {
     private TextEntryWindow textEntryWindow;
 
-    public CreateVariable(char c) : base(c, /*multi-select:*/false) { }
+    public CreateVariable(char c) : base(c, /*multi-select:*//*false) { }
 
     public override void onCall(object data)
     {
@@ -22,6 +22,7 @@ public class CreateVariable : Mode
             spawned.transform.position = editWindow.transform.position - new Vector3(0f, FontManager.lineHeight * (editWindowHeight + 2), 0f);
 
             textEntryWindow = spawned.GetComponent<TextEntryWindow>();
+            textEntryWindow.setAction(getSymbol());
         }
     }
 
@@ -35,3 +36,4 @@ public class CreateVariable : Mode
         return ("Creating variable...");
     }
 }
+*/

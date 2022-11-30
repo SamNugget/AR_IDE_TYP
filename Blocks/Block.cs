@@ -29,27 +29,22 @@ public class Block : MonoBehaviour
 
 
 
-        if (subBlockVariants == null)
+        string[] subBlockTypes = this.blockVariant.getSubBlockTypes();
+        if (subBlockVariants == null || subBlockVariants.Length != this.blockVariant.getSubBlockCount())
         {
-            string[] subBlockTypes = this.blockVariant.getSubBlockTypes();
+            if (subBlockVariants != null) Debug.Log("Block initialised with an incorrect subBlockVariants Array");
+
             subBlockVariants = new int[subBlockTypes.Length];
             for (int i = 0; i < subBlockTypes.Length; i++)
             {
                 int bVI = 0; // empty block by default
                 if (subBlockTypes[i].Equals(BlockManager.ACCESS_MODIFIER))
                     bVI = BlockManager.getBlockVariantIndex("Public"); // special AM block
-                else if (subBlockTypes[i].Equals(BlockManager.USING))
-                    bVI = BlockManager.getBlockVariantIndex("Using"); // special UG block
                 else if (subBlockTypes[i].Equals(BlockManager.VARIABLE_DECLARATION))
                     bVI = BlockManager.getBlockVariantIndex("Variable"); // special VD block
 
                 subBlockVariants[i] = bVI;
             }
-        }
-        else if (subBlockVariants.Length != this.blockVariant.getSubBlockCount())
-        {
-            Debug.Log("Block initialised with an incorrect subBlockVariants Array");
-            subBlockVariants = new int[this.blockVariant.getSubBlockCount()]; // assumes all values zero
         }
 
 
@@ -60,12 +55,15 @@ public class Block : MonoBehaviour
 
 
         // spawn all sub blocks
-        foreach (int s in subBlockVariants)
+        for (int i = 0; i < subBlockVariants.Length; i++)
         {
             Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
             Block subBlockScript = subBlock.GetComponent<Block>();
-            subBlockScript.initialise(s);
+            subBlockScript.initialise(subBlockVariants[i]);
             subBlocks.Add(subBlockScript);
+
+            if (subBlockTypes[i].Equals(BlockManager.NAME))
+                ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
         }
     }
 

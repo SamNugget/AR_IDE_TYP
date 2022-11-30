@@ -16,9 +16,8 @@ public class EditWindow : Window2D
             if (v.name.Equals(name)) return v;
         return null;
     }
-    public void addVariable(string name)
+    public void addVariable(string name, BlockManager.BlockVariant bV)
     {
-        BlockManager.BlockVariant bV = BlockManager.createVariableBlock(name);
         Variable newVariable = new Variable(name, bV);
         variables.Add(newVariable);
 
