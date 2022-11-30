@@ -40,6 +40,34 @@ public class BlockManager : MonoBehaviour
 
     // TODO: namespaces, properties, delegates, and events
 
+    private static readonly string[] cycleable = {
+        CONSTRUCT, ACCESS_MODIFIER, TRUE_FALSE
+    };
+    public static bool isCycleable(string blockType)
+    {
+        for (int i = 0; i < cycleable.Length; i++)
+            if (blockType == cycleable[i]) return true;
+        return false;
+    }
+    public static int cycleBlockVariantIndex(BlockVariant variant)
+    {
+        string blockType = variant.getBlockType();
+
+        // try get next ahead in list
+        for (int i = getBlockVariantIndex(variant) + 1; i < singleton.blockVariants.Count; i++)
+            if (singleton.blockVariants[i].getBlockType() == blockType) return i;
+
+        // try get first from beginning of list
+        return getFirstVariantOfType(blockType);
+    }
+    public static int getFirstVariantOfType(string blockType)
+    {
+        for (int i = 0; i < singleton.blockVariants.Count; i++)
+            if (singleton.blockVariants[i].getBlockType() == blockType) return i;
+        return -1;
+    }
+
+
 
     public static GameObject blockFab;
     [SerializeField] private GameObject blockPrefab;
@@ -268,11 +296,10 @@ public class BlockManager : MonoBehaviour
 
 
 
-            if (expectedType == VARIABLE_NAME)
+            if (newBlockType == VARIABLE_NAME)
             {
                 // find variable instance in window
-                EditWindow editWindow = ActionManager.EditWindow;
-                Variable variable = editWindow.getVariable(bV.getName());
+                Variable variable = ActionManager.EditWindow.getVariable(bV.getName());
                 if (variable == null)
                 {
                     Debug.Log("Err: variable not saved.");
@@ -281,12 +308,7 @@ public class BlockManager : MonoBehaviour
                 // if not declared
                 else if (variable.declarationBlock == null)
                 {
-                    Block declaration = parent.getParent();
-                    if (declaration.getBlockVariant().getBlockType().Equals(FIELD))
-                        declaration = declaration.getParent();
-
-                    variable.declarationBlock = declaration; // declare it!
-                    editWindow.drawButtons();
+                    variable.declarationBlock = parent.getParent(); // declare it!
                 }
                 // declared, check if in scope of declaration (walk up tree)
                 else
@@ -300,6 +322,7 @@ public class BlockManager : MonoBehaviour
                         Debug.Log("Must be placed in scope.");
                         return;
                     }
+                    Debug.Log("This is in scope.");
                 }
             }
         }

@@ -5,7 +5,7 @@ public class BlockClicked : Act
     public override void onCall(object data)
     {
         Mode currentMode = ActionManager.getCurrentMode();
-        char modeSymbol = currentMode.getSymbol();
+        char modeSymbol = (currentMode == null ? '\0' : currentMode.getSymbol());
 
         Block clicked = (Block)data;
         BlockManager.BlockVariant variant = clicked.getBlockVariant();
@@ -15,27 +15,15 @@ public class BlockClicked : Act
 
         bool codeModified = true;
         // check for special types first
-        if (type.Equals(BlockManager.ACCESS_MODIFIER))
+        if (BlockManager.isCycleable(type))
         {
-            // TODO: tidy this up
-            BlockManager.BlockVariant newVariant;
-            if (variant.getName().Equals("Public"))
-                newVariant = BlockManager.getBlockVariant("Private");
-            else
-                newVariant = BlockManager.getBlockVariant("Public");
-
-            int nVIndex = BlockManager.getBlockVariantIndex(newVariant);
+            int nVIndex = BlockManager.cycleBlockVariantIndex(variant);
             BlockManager.spawnBlock(nVIndex, clicked, false);
 
             Window2D window = clicked.getWindow2D();
             if (window != null) ((EditWindow)window).drawBlocks();
         }
-        else if (type.Equals(BlockManager.CONSTRUCT))
-        {
-            // TODO ALL CYCLERS
-            // ==, class
-        }
-        else if (type.Equals(BlockManager.INSERT_LINE))
+        else if (type == BlockManager.INSERT_LINE)
         {
             // this must be insert line mode, so call insert line
             currentMode.onCall(data);
@@ -50,7 +38,7 @@ public class BlockClicked : Act
 
 
         // check for lower-priority special types
-        else if (type.Equals(BlockManager.VARIABLE_NAME) || type.Equals(BlockManager.NAME))
+        else if (type == BlockManager.VARIABLE_NAME || type == BlockManager.NAME)
         {
             int variantIndex = BlockManager.getBlockVariantIndex(variant);
             ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);

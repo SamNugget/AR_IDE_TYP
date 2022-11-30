@@ -11,7 +11,7 @@ public class CreateName : Mode
     public override void onCall(object data)
     {
         string parentType = beingNamed[0].getBlockVariant().getBlockType();
-        bool isVariable = (parentType.Equals(BlockManager.FIELD) || parentType.Equals(BlockManager.VARIABLE_DECLARATION));
+        bool isVariable = (parentType == BlockManager.FIELD || parentType == BlockManager.VARIABLE_DECLARATION);
         BlockManager.BlockVariant bV = BlockManager.createNameBlock((string)data, isVariable);
         if (isVariable)
             ActionManager.EditWindow.addVariable((string)data, bV);
@@ -19,7 +19,7 @@ public class CreateName : Mode
         BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(bV), beingNamed[1], false);
 
         named = true;
-        onDeselect();
+        ActionManager.clearMode(); // this calls onDeselect
     }
 
     public override void onSelect(object data)

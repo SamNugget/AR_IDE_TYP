@@ -7,6 +7,10 @@ public class Place : Mode
 
     public override void onCall(object data)
     {
+        ActionManager.EditWindow.setCollidersEnabled(false);
+        ActionManager.EditWindow.setCollidersEnabled(true, BlockManager.EMPTY);
+        ActionManager.EditWindow.setCollidersEnabled(true, BlockManager.VARIABLE_NAME);
+        ActionManager.EditWindow.setCollidersEnabled(true, BlockManager.NAME);
         BlockManager.spawnBlock(blockToPlace, (Block)data);
     }
 
@@ -14,11 +18,15 @@ public class Place : Mode
     {
         int variantIndex = (int)data;
         blockToPlace = variantIndex;
+        ActionManager.EditWindow.setCollidersEnabled(false);
+        ActionManager.EditWindow.setCollidersEnabled(true, BlockManager.EMPTY);
+        ActionManager.EditWindow.setCollidersEnabled(true, BlockManager.VARIABLE_NAME);
+        ActionManager.EditWindow.setCollidersEnabled(true, BlockManager.NAME);
     }
 
     public override void onDeselect()
     {
-
+        ActionManager.EditWindow.setCollidersEnabled(true);
     }
 
     public override string getToolsWindowMessage()

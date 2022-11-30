@@ -38,7 +38,9 @@ public class Delete : Mode
     {
         // hide all blocks that can't be deleted
         ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.EMPTY);
+        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.CONSTRUCT);
         ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.ACCESS_MODIFIER);
+        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.TRUE_FALSE);
     }
 
     public override void onDeselect()

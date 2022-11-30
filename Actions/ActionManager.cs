@@ -7,6 +7,10 @@ public class ActionManager : MonoBehaviour
 {
     // ACTIONS
     private static Mode currentMode = null;
+    public static void clearMode()
+    {
+        setCurrentMode(null, null);
+    }
     private static void setCurrentMode(Mode mode, object data)
     {
         if (mode == currentMode) // if this is an already active mode
@@ -15,7 +19,11 @@ public class ActionManager : MonoBehaviour
             {
                 if (mode != null)
                 {
-                    if (mode.getMultiSelect()) mode.onSelect(data);
+                    if (mode.getMultiSelect())
+                    {
+                        mode.onSelect(data);
+                        tools.setTitleTextMessage(mode.getToolsWindowMessage());
+                    }
                     else mode.onCall(data);
                 }
 
@@ -23,7 +31,6 @@ public class ActionManager : MonoBehaviour
             catch (Exception e)
             {
                 Debug.Log("Err calling mode.");
-
                 return;
             }
         }
@@ -43,12 +50,12 @@ public class ActionManager : MonoBehaviour
 
                 currentMode = null;
                 tools.setTitleTextMessage("ERR");
-
                 return;
             }
-        }
 
-        tools.setTitleTextMessage(mode.getToolsWindowMessage());
+            if (mode == null) tools.setTitleTextMessage("");
+            else tools.setTitleTextMessage(mode.getToolsWindowMessage());
+        }
     }
     public static Mode getCurrentMode() { return currentMode; }
 
@@ -137,7 +144,17 @@ public class ActionManager : MonoBehaviour
             try { newAction.onCall(data); }
             catch (Exception e) {
                 Debug.Log("Err calling action " + action + " with data: " + data);
+                Debug.Log(e.StackTrace);
             }
         }
+    }
+
+
+
+    void Update()
+    {
+        // for testing
+        if (Input.GetKeyDown(KeyCode.Escape))
+            clearMode();
     }
 }

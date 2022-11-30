@@ -35,11 +35,6 @@ public class EditWindow : Window2D
         // TODO: don't allow blocks to spill
     }
 
-    public void drawButtons()
-    {
-        editButtonManager.distributeButtons();
-    }
-
     public void setCollidersEnabled(bool enabled, string typeToMask = null)
     {
         masterBlock.setColliderEnabled(enabled, typeToMask);

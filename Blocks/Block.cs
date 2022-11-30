@@ -39,8 +39,8 @@ public class Block : MonoBehaviour
             for (int i = 0; i < subBlockTypes.Length; i++)
             {
                 int bVI = 0; // empty block by default
-                if (subBlockTypes[i].Equals(BlockManager.ACCESS_MODIFIER))
-                    bVI = BlockManager.getBlockVariantIndex("Public"); // special AM block
+                if (BlockManager.isCycleable(subBlockTypes[i]))
+                    bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // special AM block
 
                 subBlockVariants[i] = bVI;
             }
