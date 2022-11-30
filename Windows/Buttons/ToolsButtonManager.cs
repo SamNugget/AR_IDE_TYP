@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ToolsButtonManager : ButtonManager2D
 {
-    protected override void distributeButtons()
+    public override void distributeButtons()
     {
         int noOfButtons = 3;
 

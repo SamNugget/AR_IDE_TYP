@@ -10,13 +10,19 @@ public class EditWindow : Window2D
 
     private List<Variable> variables = new List<Variable>();
     public List<Variable> getVariables() { return variables; }
+    public Variable getVariable(string name)
+    {
+        foreach (Variable v in variables)
+            if (v.name.Equals(name)) return v;
+        return null;
+    }
     public void addVariable(string name)
     {
         BlockManager.BlockVariant bV = BlockManager.createVariableBlock(name);
-        Variable newVariable = new Variable(name, masterBlock/*<- temp*/, bV);
+        Variable newVariable = new Variable(name, bV);
         variables.Add(newVariable);
 
-        editButtonManager.updateVariableButtons();
+        editButtonManager.distributeButtons();
     }
 
 
@@ -26,6 +32,11 @@ public class EditWindow : Window2D
         masterBlock.drawBlock();
 
         // TODO: don't allow blocks to spill
+    }
+
+    public void drawButtons()
+    {
+        editButtonManager.distributeButtons();
     }
 
     public void setCollidersEnabled(bool enabled, int variantToMask = -1)

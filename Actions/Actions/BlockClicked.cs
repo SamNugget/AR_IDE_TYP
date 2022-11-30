@@ -41,16 +41,18 @@ public class BlockClicked : Act
             // keyboard or special list
             // namespaces clutter block list
         }
-        else if (type.Equals(BlockManager.INSERT_LINE))
-        {
-            currentMode.onCall(data);
-        }
 
 
 
         // apply current action if not special type
+        else if (type.Equals(BlockManager.INSERT_LINE))
+        {
+            // this must be insert line mode, so call insert line
+            currentMode.onCall(data);
+        }
         else if (modeSymbol == ActionManager.PLACE_SELECT || modeSymbol == ActionManager.DELETE_SELECT)
         {
+            // will delete or place
             currentMode.onCall(data);
         }
         else codeModified = false; // if dropped out, no changes

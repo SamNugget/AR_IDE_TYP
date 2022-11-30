@@ -6,10 +6,11 @@ public class Variable
     public Block declarationBlock;
     public BlockManager.BlockVariant blockVariant;
 
-    public Variable(string name, Block declarationBlock, BlockManager.BlockVariant blockVariant)
+    public Variable(string name, BlockManager.BlockVariant blockVariant)
     {
         this.name = name;
-        this.declarationBlock = declarationBlock;
         this.blockVariant = blockVariant;
+
+        declarationBlock = null;
     }
 }

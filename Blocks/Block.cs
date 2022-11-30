@@ -166,32 +166,33 @@ public class Block : MonoBehaviour
                 {
                     lines[currentLine] = newLine;
                 }
+
+
+                // move subblock
+                Vector3 sBP = FontManager.lettersAndLinesToVector(posInLine, -(currentLine + extraHeight));
+                sBP.z = block.transform.localPosition.z;
+                block.transform.localPosition = sBP;
+
+
+                // update width and height
+                if (lines[currentLine].IndexOf('\n') >= 0)
+                {
+                    // increment height
+                    extraHeight += (block.getHeight() - 1);
+
+                    // compute width
+                    string[] split = lines[currentLine].Split('\n');
+                    foreach (string s in split)
+                        if (s.Length > width) width = s.Length;
+                }
+                else
+                {
+                    // compute width
+                    if (lines[currentLine].Length > width)
+                        width = lines[currentLine].Length;
+                }
             }
 
-
-
-            // move subblock
-            Vector3 sBP = FontManager.lettersAndLinesToVector(posInLine, -(currentLine + extraHeight));
-            sBP.z = block.transform.localPosition.z;
-            block.transform.localPosition = sBP;
-
-            // update width and height
-            if (lines[currentLine].IndexOf('\n') >= 0)
-            {
-                // increment height
-                extraHeight += (block.getHeight() - 1);
-
-                // compute width
-                string[] split = lines[currentLine].Split('\n');
-                foreach (string s in split)
-                    if (s.Length > width) width = s.Length;
-            }
-            else
-            {
-                // compute width
-                if (lines[currentLine].Length > width)
-                    width = lines[currentLine].Length;
-            }
 
 
             // if we need to insert another block on this line, recalculate block positions
@@ -200,6 +201,9 @@ public class Block : MonoBehaviour
         }
         if (width < 0) width = blockVariant.getWidth();
         height += extraHeight;
+
+
+
 
 
         // flatten into a single string

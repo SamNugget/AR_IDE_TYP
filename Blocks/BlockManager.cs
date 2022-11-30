@@ -27,6 +27,7 @@ public class BlockManager : MonoBehaviour
     public readonly static string VARIABLE_DECLARATION = "VD"; // @TP *name*
     
     public readonly static string VARIABLE_NAME = "VN"; // @TP *name*
+    public readonly static string METHOD_CLASS_NAME = "MC";
 
     // for if statements, while loops
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
@@ -237,10 +238,12 @@ public class BlockManager : MonoBehaviour
 
 
 
-            string newBlockType = getBlockVariant(blockVariant).getBlockType();
+            BlockVariant bV = getBlockVariant(blockVariant);
+            string newBlockType = bV.getBlockType();
             string[] sBTs = parentVariant.getSubBlockTypes();
+            string expectedType = sBTs[index];
 
-            if (sBTs[index] == CLASS_BODY)
+            if (expectedType == CLASS_BODY)
             {
                 if (newBlockType != FIELD && newBlockType != METHOD)
                 {
@@ -248,9 +251,37 @@ public class BlockManager : MonoBehaviour
                     return;
                 }
             }
-            else if (sBTs[index] != ANY && sBTs[index] != newBlockType)
+            else if (expectedType == VARIABLE_NAME)
             {
-                Debug.Log(sBTs[index] + " block expected, not " + newBlockType + ".");
+                // find variable instance in window
+                EditWindow editWindow = ActionManager.EditWindow;
+                Variable variable = editWindow.getVariable(bV.getName());
+                if (variable == null)
+                {
+                    Debug.Log("Err: variable not saved.");
+                    // drop out of if and place anyways
+                }
+                // check if declared
+                else if (variable.declarationBlock == null)
+                {
+                    Block declaration = parent.getParent();
+                    if (declaration.getBlockVariant().getBlockType().Equals(FIELD))
+                        declaration = declaration.getParent();
+
+                    variable.declarationBlock = declaration; // it has now been declared
+                    editWindow.drawButtons();
+                    // drop out of if and place
+                }
+                // check if in scope of declaration (walk up tree)
+                else
+                {
+                    // TEMPORARY: don't place
+                    return;
+                }
+            }
+            else if (expectedType != ANY && expectedType != newBlockType)
+            {
+                Debug.Log(expectedType + " block expected, not " + newBlockType + ".");
                 return;
             }
         }

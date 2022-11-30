@@ -15,7 +15,7 @@ public abstract class ButtonManager2D : MonoBehaviour
 
 
 
-    protected abstract void distributeButtons();
+    public abstract void distributeButtons();
 
     protected List<Transform> distributeVertically(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
     {
@@ -128,7 +128,7 @@ public abstract class ButtonManager2D : MonoBehaviour
         }
     }
 
-    void Start()
+    public void Start()
     {
         distributeButtons();
     }
