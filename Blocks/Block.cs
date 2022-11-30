@@ -29,6 +29,7 @@ public class Block : MonoBehaviour
 
 
 
+        string blockType = this.blockVariant.getBlockType();
         string[] subBlockTypes = this.blockVariant.getSubBlockTypes();
         if (subBlockVariants == null || subBlockVariants.Length != this.blockVariant.getSubBlockCount())
         {
@@ -40,8 +41,6 @@ public class Block : MonoBehaviour
                 int bVI = 0; // empty block by default
                 if (subBlockTypes[i].Equals(BlockManager.ACCESS_MODIFIER))
                     bVI = BlockManager.getBlockVariantIndex("Public"); // special AM block
-                else if (subBlockTypes[i].Equals(BlockManager.VARIABLE_DECLARATION))
-                    bVI = BlockManager.getBlockVariantIndex("Variable"); // special VD block
 
                 subBlockVariants[i] = bVI;
             }
@@ -62,7 +61,7 @@ public class Block : MonoBehaviour
             subBlockScript.initialise(subBlockVariants[i]);
             subBlocks.Add(subBlockScript);
 
-            if (subBlockTypes[i].Equals(BlockManager.NAME))
+            if (subBlockTypes[i] == BlockManager.NEW_NAME)
                 ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
         }
     }
@@ -76,12 +75,12 @@ public class Block : MonoBehaviour
         resizeBlock();
     }
 
-    public void setColliderEnabled(bool enabled, int variantToMask = -1)
+    public void setColliderEnabled(bool enabled, string typeToMask)
     {
         foreach (Block subBlock in subBlocks)
-            subBlock.setColliderEnabled(enabled, variantToMask);
+            subBlock.setColliderEnabled(enabled, typeToMask);
 
-        if (variantToMask < 0 || variantToMask == BlockManager.getBlockVariantIndex(blockVariant))
+        if (typeToMask == null || blockVariant.getBlockType().Equals(typeToMask))
             GetComponentInChildren<Collider>().enabled = enabled;
     }
 

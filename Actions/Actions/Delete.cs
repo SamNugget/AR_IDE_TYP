@@ -6,32 +6,44 @@ public class Delete : Mode
 
     public override void onCall(object data)
     {
-        string type = ((Block)data).getBlockVariant().getBlockType();
-        //if (type.Equals(BlockManager.VARIABLE_NAME) || type.Equals(BlockManager.VARIABLE_DECLARATION) || type.Equals(BlockManager.FIELD))
-        //{
-        //    is the parent a variable declaration block?
-        //}
-        if (type.Equals(BlockManager.EMPTY) || type.Equals(BlockManager.ACCESS_MODIFIER))
+        Block toReplace = (Block)data;
+        Block parent = toReplace.getParent();
+        if (parent == null) {
+            Debug.Log("Can't delete the master block."); return;
+        }
+
+        // TODO: will deleting this affect variable declaration?
+
+        /*string actualType = ((Block)data).getBlockVariant().getBlockType();
+        if (actualType.Equals(BlockManager.EMPTY) || actualType.Equals(BlockManager.ACCESS_MODIFIER))
         {
             Debug.Log("Can't delete blocks of this type.");
             return;
+        }*/
+
+        string[] subBlockTypes = parent.getBlockVariant().getSubBlockTypes();
+        int subBlockIndex = parent.getSubBlockIndex(toReplace);
+        string supposedType = subBlockTypes[subBlockIndex]; // not the actual type, but what should be here
+        if (supposedType.Equals(BlockManager.NEW_NAME))
+        {
+            Debug.Log("Can't delete a name.");
+            return;
         }
 
-        BlockManager.spawnBlock(0, (Block)data, false);
-        EditWindow editWindow = ActionManager.EditWindow;
-        editWindow.setCollidersEnabled(false, 0);
+        BlockManager.spawnBlock(0, toReplace, false);
+        onSelect(null);
     }
 
     public override void onSelect(object data)
     {
-        EditWindow editWindow = ActionManager.EditWindow;
-        editWindow.setCollidersEnabled(false, 0);
+        // hide all blocks that can't be deleted
+        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.EMPTY);
+        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.ACCESS_MODIFIER);
     }
 
     public override void onDeselect()
     {
-        EditWindow editWindow = ActionManager.EditWindow;
-        editWindow.setCollidersEnabled(true);
+        ActionManager.EditWindow.setCollidersEnabled(true);
     }
 
     public override string getToolsWindowMessage()

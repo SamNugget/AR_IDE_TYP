@@ -10,7 +10,8 @@ public class CreateName : Mode
 
     public override void onCall(object data)
     {
-        bool isVariable = beingNamed[1].getBlockVariant().getBlockType().Equals(BlockManager.VARIABLE_NAME);
+        string parentType = beingNamed[0].getBlockVariant().getBlockType();
+        bool isVariable = (parentType.Equals(BlockManager.FIELD) || parentType.Equals(BlockManager.VARIABLE_DECLARATION));
         BlockManager.BlockVariant bV = BlockManager.createNameBlock((string)data, isVariable);
         if (isVariable)
             ActionManager.EditWindow.addVariable((string)data, bV);
@@ -26,7 +27,7 @@ public class CreateName : Mode
         if (textEntryWindow == null)
         {
             beingNamed = (Block[])data;
-            // beingNamed[0] = class or method, beingNamed[1] = the name itself
+            // beingNamed[0] = class, method or variable block, beingNamed[1] = the empty block
 
 
 

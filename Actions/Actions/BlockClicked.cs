@@ -4,18 +4,12 @@ public class BlockClicked : Act
 
     public override void onCall(object data)
     {
-        EditWindow editWindow = ActionManager.EditWindow;
         Mode currentMode = ActionManager.getCurrentMode();
         char modeSymbol = currentMode.getSymbol();
 
-        // handle actions
         Block clicked = (Block)data;
         BlockManager.BlockVariant variant = clicked.getBlockVariant();
         string type = variant.getBlockType();
-        
-        //Debug.Log("Clicked " + type);
-
-
 
 
 
@@ -36,21 +30,35 @@ public class BlockClicked : Act
             Window2D window = clicked.getWindow2D();
             if (window != null) ((EditWindow)window).drawBlocks();
         }
-        else if (type.Equals(BlockManager.NAME))
+        else if (type.Equals(BlockManager.CONSTRUCT))
         {
-            int variantIndex = BlockManager.getBlockVariantIndex(variant);
-            ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);
+            // TODO ALL CYCLERS
+            // ==, class
         }
-
-
-
-        // apply current action if not special type
         else if (type.Equals(BlockManager.INSERT_LINE))
         {
             // this must be insert line mode, so call insert line
             currentMode.onCall(data);
         }
-        else if (modeSymbol == ActionManager.PLACE_SELECT || modeSymbol == ActionManager.DELETE_SELECT)
+
+
+        else if (modeSymbol == ActionManager.DELETE_SELECT)
+        {
+            // will delete or place
+            currentMode.onCall(data);
+        }
+
+
+        // check for lower-priority special types
+        else if (type.Equals(BlockManager.VARIABLE_NAME) || type.Equals(BlockManager.NAME))
+        {
+            int variantIndex = BlockManager.getBlockVariantIndex(variant);
+            ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);
+            codeModified = false; // just copying, no changes
+        }
+
+
+        else if (modeSymbol == ActionManager.PLACE_SELECT)
         {
             // will delete or place
             currentMode.onCall(data);
@@ -59,6 +67,6 @@ public class BlockClicked : Act
 
 
 
-        if (codeModified) editWindow.setTitleTextMessage("*");
+        if (codeModified) ActionManager.EditWindow.setTitleTextMessage("*");
     }
 }

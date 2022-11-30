@@ -20,8 +20,10 @@ public class EditWindow : Window2D
     {
         Variable newVariable = new Variable(name, bV);
         variables.Add(newVariable);
-
-        editButtonManager.distributeButtons();
+    }
+    private void checkForNullVariable()
+    {
+        // TODO
     }
 
 
@@ -38,9 +40,9 @@ public class EditWindow : Window2D
         editButtonManager.distributeButtons();
     }
 
-    public void setCollidersEnabled(bool enabled, int variantToMask = -1)
+    public void setCollidersEnabled(bool enabled, string typeToMask = null)
     {
-        masterBlock.setColliderEnabled(enabled, variantToMask);
+        masterBlock.setColliderEnabled(enabled, typeToMask);
     }
 
     public void setSpecialChildBlocks(int variantIndex, bool enabled)

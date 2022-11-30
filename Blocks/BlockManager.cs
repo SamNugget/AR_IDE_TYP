@@ -13,16 +13,18 @@ public class BlockManager : MonoBehaviour
     public readonly static string SPLITTER = "SR";
     public readonly static string INSERT_LINE = "IL";
 
-    // for namespaces stuff and things
     public readonly static string USING = "UG";
 
-    // class
-    public readonly static string CLASS_BODY = "CB"; // field or method
+    // struct, class, interface, enum, and record constructs
+    public readonly static string CONSTRUCT = "CT";
+    public readonly static string CONSTRUCT_BODY = "CB"; // field or method
     public readonly static string FIELD = "FD"; // @AM @TP @NM {}
     public readonly static string METHOD = "MD"; // @AM @TP @NM() {}
 
-    // namespace, class name or method name
+    // namespace, class name, method name or variable name
+    public readonly static string NEW_NAME = "NN"; // can be copied but not deleted
     public readonly static string NAME = "NM";
+    public readonly static string VARIABLE_NAME = "VN";
 
     // for fields and methods
     public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
@@ -31,12 +33,12 @@ public class BlockManager : MonoBehaviour
     // for inside methods and constructors
     public readonly static string BODY = "BY"; // if statements, variable declaration, etc.
     public readonly static string VARIABLE_DECLARATION = "VD"; // @TP @VN
-    public readonly static string VARIABLE_NAME = "VN";
 
     // for if statements, while loops
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
+    public readonly static string TRUE_FALSE = "TF";
 
-    // TODO: structs, constructors, properties, delegates, and events
+    // TODO: namespaces, properties, delegates, and events
 
 
     public static GameObject blockFab;
@@ -208,11 +210,6 @@ public class BlockManager : MonoBehaviour
     {
         // get info from emptyBlock
         Block parent = toReplace.getParent();
-        if (parent == null)
-        {
-            Debug.Log("Can't delete the master block.");
-            return;
-        }
         int subBlockIndex = parent.getSubBlockIndex(toReplace);
 
 
@@ -243,15 +240,27 @@ public class BlockManager : MonoBehaviour
             string[] sBTs = parentVariant.getSubBlockTypes();
             string expectedType = sBTs[index];
 
-            if (expectedType == CLASS_BODY)
+            if (expectedType == newBlockType) ;
+            else if (expectedType == CONSTRUCT_BODY)
             {
                 if (newBlockType != FIELD && newBlockType != METHOD)
                 {
-                    Debug.Log("Only fields, methods and constructors may go in the class body.");
+                    Debug.Log("Only fields, methods and constructors may go in the construct body.");
                     return;
                 }
             }
-            else if (expectedType != ANY && expectedType != newBlockType)
+            else if (expectedType == BODY)
+            {
+                if (newBlockType != VARIABLE_DECLARATION)
+                {
+                    Debug.Log("That block can't go here.");
+                    return;
+                }
+            }
+            else if (expectedType == NEW_NAME && (newBlockType == NAME || newBlockType == VARIABLE_NAME)) ;
+            else if (newBlockType == VARIABLE_NAME && expectedType == BOOLEAN_EXPRESSION) ;
+            else if (newBlockType == NAME && expectedType == TYPE) ;
+            else if (expectedType != ANY)
             {
                 Debug.Log(expectedType + " block expected, not " + newBlockType + ".");
                 return;
