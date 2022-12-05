@@ -11,14 +11,13 @@ public class EditButtonManager : ButtonManager2D
     [SerializeField] private Transform blockButtonsParent;
 
     // TODO: lists could be more dynamic, parent class could have add/remove button functions
-    private List<Transform> blockButtons = new List<Transform>();
 
     [SerializeField] private int variantsToExclude;
     private int totalVariants;
 
     public override void distributeButtons()
     {
-        deleteButtons(blockButtons);
+        deleteButtons(blockButtonsParent);
 
 
 
@@ -38,7 +37,7 @@ public class EditButtonManager : ButtonManager2D
             data[i] = variantIndex;
         }
 
-        blockButtons = distributeVertically(buttonLabels, actions, data, blockButtonsParent);
+        distributeVertically(buttonLabels, actions, data, blockButtonsParent);
     }
 
     void Start()

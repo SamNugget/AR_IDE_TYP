@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class SaveSystem : MonoBehaviour
 {
-    public static void saveCode(string fileName, string code)
+    public static bool saveCode(string fileName, string code)
     {
-        string path = Application.persistentDataPath + "/" + fileName;
+        string path = Application.persistentDataPath + "/source/" + fileName;
+
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(Application.persistentDataPath + "/source");
 
         try
         {
@@ -15,11 +18,12 @@ public class SaveSystem : MonoBehaviour
                 outputFile.WriteLine(code);
             }
             Debug.Log("Saved to " + path);
+            return true;
         }
         catch
         {
             Debug.Log("Issue writing to " + path);
-            return;
+            return false;
         }
     }
 }

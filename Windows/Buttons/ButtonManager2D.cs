@@ -105,7 +105,7 @@ public abstract class ButtonManager2D : MonoBehaviour
         if (index < 0) return;
 
 
-        Transform toReplace = buttons[index + 1];
+        Transform toReplace = (index + 1 < buttons.Count ? buttons[index + 1] : null);
         if (toReplace != null)
         {
             Vector2 change = toRemove.position - toReplace.position;
@@ -119,13 +119,12 @@ public abstract class ButtonManager2D : MonoBehaviour
         Destroy(toRemove.gameObject);
     }
 
-    protected void deleteButtons(List<Transform> buttons)
+    protected void deleteButtons(Transform parent = null)
     {
-        for (int i = buttons.Count - 1; i >= 0; i--)
-        {
-            Destroy(buttons[i].gameObject);
-            buttons.RemoveAt(i);
-        }
+        if (parent == null) parent = transform;
+
+        foreach (Transform child in parent)
+            Destroy(child.gameObject);
     }
 
     public void Start()
