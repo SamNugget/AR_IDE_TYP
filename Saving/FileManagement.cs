@@ -24,7 +24,8 @@ namespace FileManagement
         {
             get
             {
-                //if (_files == null) File[] foo = files;
+                if (_files == null) findFiles();
+
                 Dictionary<string, File>.KeyCollection keys = _files.Keys;
 
                 List<string> names = new List<string>();
@@ -40,19 +41,21 @@ namespace FileManagement
         {
             get
             {
-                if (_files == null)
-                {
-                    _files = new Dictionary<string, File>();
-                    string[] paths = Directory.GetFiles(SaveSystem.sourceFilesPath);
-
-                    foreach (string path in paths)
-                        _files.Add(Path.GetFileName(path), new File(path));
-                }
+                if (_files == null) findFiles();
 
                 File[] files = new File[_files.Count];
                 _files.Values.CopyTo(files, 0);
                 return files;
             }
+        }
+
+        public static void findFiles()
+        {
+            _files = new Dictionary<string, File>();
+            string[] paths = Directory.GetFiles(SaveSystem.sourceFilesPath);
+
+            foreach (string path in paths)
+                _files.Add(Path.GetFileName(path), new File(path));
         }
 
         public class File
