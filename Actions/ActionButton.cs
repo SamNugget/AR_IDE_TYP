@@ -1,11 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class ActionButton : MonoBehaviour
 {
-    // float width?
-    // float height?
+    [SerializeField] private TextMeshPro labelText;
+    public void setLabel(string label)
+    {
+        if (labelText != null) labelText.text = label;
+    }
+    public string getLabel()
+    {
+        return labelText.text;
+    }
 
     private char action;
     public void setAction(char a)

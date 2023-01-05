@@ -20,7 +20,7 @@ public class BlockClicked : Act
             int nVIndex = BlockManager.cycleBlockVariantIndex(variant);
             BlockManager.spawnBlock(nVIndex, clicked, false);
 
-            Window2D window = clicked.getWindow2D();
+            Window3D window = clicked.getWindow3D();
             if (window != null) ((EditWindow)window).drawBlocks();
         }
         else if (type == BlockManager.INSERT_LINE)
@@ -55,6 +55,7 @@ public class BlockClicked : Act
 
 
 
-        if (codeModified) ActionManager.EditWindow.setTitleTextMessage("*");
+        if (codeModified)
+            ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setTitleTextMessage("*");
     }
 }

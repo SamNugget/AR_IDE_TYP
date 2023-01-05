@@ -13,6 +13,8 @@ public class ActionManager : MonoBehaviour
     }
     private static void setCurrentMode(Mode mode, object data)
     {
+        Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsButtonManager>();
+
         if (mode == currentMode) // if this is an already active mode
         {
             try
@@ -22,7 +24,7 @@ public class ActionManager : MonoBehaviour
                     if (mode.getMultiSelect())
                     {
                         mode.onSelect(data);
-                        tools.setTitleTextMessage(mode.getToolsWindowMessage());
+                        toolsWindow.setTitleTextMessage(mode.getToolsWindowMessage());
                     }
                     else mode.onCall(data);
                 }
@@ -49,12 +51,12 @@ public class ActionManager : MonoBehaviour
                 Debug.Log("Err selecting mode.");
 
                 currentMode = null;
-                tools.setTitleTextMessage("ERR");
+                toolsWindow.setTitleTextMessage("ERR");
                 return;
             }
 
-            if (mode == null) tools.setTitleTextMessage("");
-            else tools.setTitleTextMessage(mode.getToolsWindowMessage());
+            if (mode == null) toolsWindow.setTitleTextMessage("");
+            else toolsWindow.setTitleTextMessage(mode.getToolsWindowMessage());
         }
     }
     public static Mode getCurrentMode() { return currentMode; }
@@ -64,6 +66,7 @@ public class ActionManager : MonoBehaviour
     public readonly static char INSERT_LINE = 'i'; // mode
     public readonly static char BLOCK_CLICKED = 'B';
     public readonly static char SAVE_CODE = 'S';
+    public readonly static char OPEN_WORKSPACE = 'O';
     public readonly static char CREATE_VARIABLE = 'V'; // mode
     public readonly static char CREATE_NAME = 'N'; // mode
 
@@ -90,34 +93,21 @@ public class ActionManager : MonoBehaviour
 
 
 
-    // tools window for feedback
-    private static Window2D tools;
-    [SerializeField] private Window2D _toolsWindow;
-    public static Window2D ToolsWindow
-    {
-        get { return tools; }
-        set { tools = value; }
-    }
-    // edit window
-    private static EditWindow edit;
-    [SerializeField] private EditWindow _editWindow;
-    public static EditWindow EditWindow
-    {
-        get { return edit; }
-        set { edit = value; }
-    }
     void Awake()
     {
-        tools = _toolsWindow;
-        edit = _editWindow;
+        // Add all action classes to list
+        List<Act> actionList = new List<Act>();
+        actionList.Add(new Place(PLACE_SELECT));
+        actionList.Add(new Delete(DELETE_SELECT));
+        actionList.Add(new InsertLine(INSERT_LINE));
+        actionList.Add(new BlockClicked(BLOCK_CLICKED));
+        actionList.Add(new SaveCode(SAVE_CODE));
+        actionList.Add(new CreateName(CREATE_NAME));
+        actionList.Add(new OpenWorkspace(OPEN_WORKSPACE));
 
-        actions = new Act[6];
-        actions[0] = new Place(PLACE_SELECT);
-        actions[1] = new Delete(DELETE_SELECT);
-        actions[2] = new InsertLine(INSERT_LINE);
-        actions[3] = new BlockClicked(BLOCK_CLICKED);
-        actions[4] = new SaveCode(SAVE_CODE);
-        actions[5] = new CreateName(CREATE_NAME);
+
+
+        actions = actionList.ToArray();
     }
 
 

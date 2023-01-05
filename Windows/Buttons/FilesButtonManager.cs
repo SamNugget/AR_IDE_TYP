@@ -3,29 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using FileManagement;
 
-public class FilesButtonManager : ButtonManager2D
+public class FilesButtonManager : ButtonManager3D
 {
-    public override void distributeButtons()
+    public override void createButtons()
     {
-        deleteButtons();
+        string[] files = FileManager.sourceFileNames;
 
+        foreach (string file in files)
+            spawnButton(file, '\0', file);
 
-
-        string[] files = FileManager.fileNames;
-
-        int noOfButtons = files.Length;
-
-        string[] buttonLabels = new string[noOfButtons];
-        char[] actions = new char[noOfButtons];
-        object[] data = new object[noOfButtons];
-
-        for (int i = 0; i < noOfButtons; i++)
-        {
-            buttonLabels[i] = files[i];
-            actions[i] = '\0';
-            data[i] = null;
-        }
-
-        distributeVertically(buttonLabels, actions, data);
+        spawnButton("CREATE NEW", '\0', null);
     }
 }

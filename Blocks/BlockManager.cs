@@ -299,7 +299,7 @@ public class BlockManager : MonoBehaviour
             if (newBlockType == VARIABLE_NAME)
             {
                 // find variable instance in window
-                Variable variable = ActionManager.EditWindow.getVariable(bV.getName());
+                Variable variable = ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).getVariable(bV.getName());
                 if (variable == null)
                 {
                     Debug.Log("Err: variable not saved.");
@@ -337,7 +337,7 @@ public class BlockManager : MonoBehaviour
 
         // draw the blocks
         // TODO: draw blocks should be in blocks, go recursively to highest, then down
-        Window2D window = parent.getWindow2D();
+        Window3D window = parent.getWindow3D();
         if (window != null) ((EditWindow)window).drawBlocks();
     }
 
@@ -367,7 +367,7 @@ public class BlockManager : MonoBehaviour
 
         // draw the blocks
         // TODO: draw blocks should be in blocks, go recursively to highest, then down
-        Window2D window = parent.getWindow2D();
+        Window3D window = parent.getWindow3D();
         if (window != null) ((EditWindow)window).drawBlocks();
     }
 

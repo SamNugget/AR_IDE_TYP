@@ -1,3 +1,4 @@
+[System.Serializable]
 public class FieldS : VariableS
 {
     public string accessModifier;

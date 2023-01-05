@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using FileManagement;
 
-public class EditWindow : Window2D
+public class EditWindow : Window3D
 {
     private Block masterBlock;
 
@@ -46,8 +46,7 @@ public class EditWindow : Window2D
 
     public void saveCode()
     {
-        string code = masterBlock.getBlockText(true);
-        SaveSystem.saveCode(name, code);
+        FileManager.saveSourceFile(name);
     }
 
 
@@ -57,7 +56,5 @@ public class EditWindow : Window2D
         masterBlock = Instantiate(BlockManager.blockFab, transform).transform.GetComponent<Block>();
         masterBlock.initialise(BlockManager.getBlockVariantIndex("Window Block"));
         masterBlock.drawBlock();
-
-        base.Start();
     }
 }

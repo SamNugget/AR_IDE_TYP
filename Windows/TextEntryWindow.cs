@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class TextEntryWindow : Window2D
+public class TextEntryWindow : Window3D
 {
     [SerializeField] private TMP_InputField inputField;
     private char action;

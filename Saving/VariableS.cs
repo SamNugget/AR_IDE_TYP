@@ -1,3 +1,4 @@
+[System.Serializable]
 public class VariableS : IConvertToCode
 {
     public string type;

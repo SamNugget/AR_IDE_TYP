@@ -9,7 +9,7 @@ public class InsertLine : Mode
         Block parent = ((Block)data).getParent();
         BlockManager.splitBlock(parent);
 
-        EditWindow editWindow = ActionManager.EditWindow;
+        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
         editWindow.setCollidersEnabled(false);
         editWindow.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
         editWindow.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
@@ -21,7 +21,7 @@ public class InsertLine : Mode
 
     private void select(bool de)
     {
-        EditWindow editWindow = ActionManager.EditWindow;
+        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
         editWindow.setCollidersEnabled(de);
         editWindow.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), !de);
     }

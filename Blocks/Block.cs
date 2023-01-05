@@ -21,7 +21,7 @@ public class Block : MonoBehaviour
 
 
 
-    public void initialise(int blockVariant, int[] subBlockVariants = null)
+    public void initialise(int blockVariant, BlockSave blockSave = null)
     {
         this.blockVariant = BlockManager.getBlockVariant(blockVariant);
         this.subBlocks = new List<Block>();
@@ -31,18 +31,19 @@ public class Block : MonoBehaviour
 
         string blockType = this.blockVariant.getBlockType();
         string[] subBlockTypes = this.blockVariant.getSubBlockTypes();
-        if (subBlockVariants == null || subBlockVariants.Length != this.blockVariant.getSubBlockCount())
+        if (blockSave == null || blockSave.subBlocks.Length != this.blockVariant.getSubBlockCount())
         {
-            if (subBlockVariants != null) Debug.Log("Block initialised with an incorrect subBlockVariants Array");
+            if (blockSave != null) Debug.Log("Block initialised with an incorrect blockSave.subBlocks Array");
 
-            subBlockVariants = new int[subBlockTypes.Length];
+            blockSave = new BlockSave();
+            blockSave.subBlocks = new BlockSave[subBlockTypes.Length];
             for (int i = 0; i < subBlockTypes.Length; i++)
             {
                 int bVI = 0; // empty block by default
                 if (BlockManager.isCycleable(subBlockTypes[i]))
                     bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // special AM block
 
-                subBlockVariants[i] = bVI;
+                blockSave.subBlocks[i].blockVariant = bVI;
             }
         }
 
@@ -54,11 +55,16 @@ public class Block : MonoBehaviour
 
 
         // spawn all sub blocks
-        for (int i = 0; i < subBlockVariants.Length; i++)
+        for (int i = 0; i < blockSave.subBlocks.Length; i++)
         {
             Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
             Block subBlockScript = subBlock.GetComponent<Block>();
-            subBlockScript.initialise(subBlockVariants[i]);
+
+            if (blockSave.subBlocks == null)
+                subBlockScript.initialise(blockSave.blockVariant);
+            else
+                subBlockScript.initialise(blockSave.blockVariant, blockSave.subBlocks[i]);
+
             subBlocks.Add(subBlockScript);
 
             if (subBlockTypes[i] == BlockManager.NEW_NAME)
@@ -270,14 +276,14 @@ public class Block : MonoBehaviour
         return transform.parent.GetComponent<Block>();
     }
 
-    public Window2D getWindow2D()
+    public Window3D getWindow3D()
     {
-        Window2D window = transform.parent.GetComponent<Window2D>();
+        Window3D window = transform.parent.GetComponent<Window3D>();
         if (window == null)
         {
             Block parent = getParent();
             if (parent != null)
-                window = parent.getWindow2D();
+                window = parent.getWindow3D();
         }
         return window;
     }

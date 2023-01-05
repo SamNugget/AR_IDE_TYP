@@ -37,15 +37,16 @@ public class Delete : Mode
     public override void onSelect(object data)
     {
         // hide all blocks that can't be deleted
-        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.EMPTY);
-        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.CONSTRUCT);
-        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.ACCESS_MODIFIER);
-        ActionManager.EditWindow.setCollidersEnabled(false, BlockManager.TRUE_FALSE);
+        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
+        editWindow.setCollidersEnabled(false, BlockManager.EMPTY);
+        editWindow.setCollidersEnabled(false, BlockManager.CONSTRUCT);
+        editWindow.setCollidersEnabled(false, BlockManager.ACCESS_MODIFIER);
+        editWindow.setCollidersEnabled(false, BlockManager.TRUE_FALSE);
     }
 
     public override void onDeselect()
     {
-        ActionManager.EditWindow.setCollidersEnabled(true);
+        ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setCollidersEnabled(true);
     }
 
     public override string getToolsWindowMessage()

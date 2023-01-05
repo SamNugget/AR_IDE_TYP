@@ -1,6 +1,15 @@
+using System;
+
+[Serializable]
 public class ImplementedMethodS : MethodS
 {
-    public Block masterBlock;
+    [NonSerialized] public Block masterBlock;
+    public BlockSave blockSave;
+
+    public ImplementedMethodS(string name, BlockSave blockSave) : base(name)
+    {
+
+    }
 
     public override string getCode()
     {

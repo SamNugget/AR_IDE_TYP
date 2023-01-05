@@ -8,7 +8,7 @@ namespace FileManagement
 {
     public static class FileManager
     {
-        public static string[] filePaths
+        /*public static string[] filePaths
         {
             get
             {
@@ -18,70 +18,177 @@ namespace FileManagement
 
                 return paths;
             }
-        }
+        }*/
 
-        public static string[] fileNames
+        /*private static Workspace[] files
         {
             get
             {
-                if (_files == null) findFiles();
+                if (_files == null) findWorkspaces();
 
-                Dictionary<string, File>.KeyCollection keys = _files.Keys;
-
-                List<string> names = new List<string>();
-                foreach (string key in keys)
-                    names.Add(key);
-
-                return names.ToArray();
-            }
-        }
-
-        private static Dictionary<string, File> _files = null;
-        public static File[] files
-        {
-            get
-            {
-                if (_files == null) findFiles();
-
-                File[] files = new File[_files.Count];
+                Workspace[] files = new Workspace[_files.Count];
                 _files.Values.CopyTo(files, 0);
                 return files;
             }
+        }*/
+
+        public static string[] workspaceNames
+        {
+            get
+            {
+                string[] paths = Directory.GetDirectories(DirectoryManager.workspacesPath);
+                string[] names = new string[paths.Length];
+                for (int i = 0; i < paths.Length; i++)
+                    names[i] = Path.GetFileName(paths[i]);
+                return names;
+            }
         }
 
-        public static void findFiles()
+        public static string[] sourceFileNames
         {
-            _files = new Dictionary<string, File>();
-            string[] paths = Directory.GetFiles(SaveSystem.sourceFilesPath);
-
-            foreach (string path in paths)
-                _files.Add(Path.GetFileName(path), new File(path));
+            get
+            {
+                Dictionary<string, ReferenceTypeS>.KeyCollection keys = activeWorkspace._sourceFiles.Keys;
+                Debug.Log("keys: " + keys.Count);
+                string[] names = new string[keys.Count];
+                keys.CopyTo(names, 0);
+                return names;
+            }
         }
 
-        public class File
+
+
+        public static Workspace activeWorkspace = null;
+
+        public static void loadWorkspace(string name)
         {
-            //string fileName; - is key
+            string workspacePath = DirectoryManager.makeDirectory(DirectoryManager.workspacesPath + '/' + name);
+
+            // vv allows people to exit and re-enter workspace without reloading
+            if (activeWorkspace == null || activeWorkspace.path != workspacePath)
+                activeWorkspace = new Workspace(workspacePath);
+        }
+
+        public static bool createSourceFile(string name)
+        {
+            return activeWorkspace.createSourceFile(name);
+        }
+
+        public static bool saveSourceFile(string name)
+        {
+            return activeWorkspace.saveSourceFile(name);
+        }
+
+        // public static bool saveAll();
+
+        public class Workspace
+        {
             public string path;
-            //public BlockSave blockSave;
-            //public bool open;
+            public Dictionary<string, ReferenceTypeS> _sourceFiles = null;
 
-            public File(string path)
+            public Workspace(string path)
             {
                 this.path = path;
-                // open = BlockSave.open;
+                findSourceFiles();
+            }
+
+            public void findSourceFiles()
+            {
+                _sourceFiles = new Dictionary<string, ReferenceTypeS>();
+
+                string[] directories = Directory.GetDirectories(path);
+                foreach (string directory in directories)
+                {
+                    string[] files = Directory.GetFiles(directory);
+                    foreach (string file in files)
+                    {
+                        if (file.Contains(".json"))
+                        {
+                            ReferenceTypeS f = loadSourceFile(file);
+                            // dictionary key is file name
+                            if (f != null)
+                            {
+                                _sourceFiles.Add(f.name, f);
+                                Debug.Log("Loaded source file " + Path.GetFileName(file)); // TEMP
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            public static ReferenceTypeS loadSourceFile(string path)
+            {
+                if (!File.Exists(path))
+                {
+                    Debug.Log("Path does not exist " + path);
+                    return null;
+                }
+
+                try
+                {
+                    using (StreamReader r = new StreamReader(path))
+                    {
+                        string json = r.ReadToEnd();
+                        ReferenceTypeS sourceFile = JsonUtility.FromJson<ReferenceTypeS>(json);
+                        return sourceFile;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("Issue with the formatting of text file " + path);
+                    return null;
+                }
+            }
+
+            public bool saveSourceFile(string name)
+            {
+                try
+                {
+                    if (!_sourceFiles.ContainsKey(name))
+                    {
+                        Debug.Log("Source file " + name + " does not exist");
+                        return false;
+                    }
+
+                    ReferenceTypeS sourceFile = _sourceFiles[name];
+
+                    using (StreamWriter w = new StreamWriter(sourceFile.path))
+                    {
+                        w.WriteLine(JsonUtility.ToJson(sourceFile));
+                        return true;
+                    }
+
+                    // TODO: also save the source code
+                    // sourceFile.getCode();
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e.StackTrace);
+                    Debug.Log("Issue converting " + name + " to json");
+                    return false;
+                }
+            }
+
+            public bool createSourceFile(string name)
+            {
+                if (_sourceFiles.ContainsKey(name))
+                {
+                    Debug.Log("File already exists");
+                    return false;
+                }
+
+                _sourceFiles.Add(name, new ReferenceTypeS(path + '/' + name, name));
+                return true;
             }
         }
     }
 
-    public static class SaveSystem
+    public static class DirectoryManager
     {
-        public static string sourceFilesPath
+        public static string workspacesPath
         {
-            get { return makeDirectory(Application.persistentDataPath + "/source"); }
-        }
-        public static string blockFilesPath
-        {
-            get { return makeDirectory(Application.persistentDataPath + "/block"); }
+            get { return makeDirectory(Application.persistentDataPath + "/Workspaces"); }
         }
 
         public static string makeDirectory(string path)
@@ -92,25 +199,10 @@ namespace FileManagement
                     Directory.CreateDirectory(path);
                 return path;
             }
-            catch { return null; }
-        }
-
-        public static bool saveCode(string fileName, string code)
-        {
-            string filePath = sourceFilesPath + "/" + fileName + ".cs";
-            try
-            {
-                using (StreamWriter outputFile = new StreamWriter(filePath))
-                {
-                    outputFile.WriteLine(code);
-                }
-                Debug.Log("Saved to " + filePath);
-                return true;
-            }
             catch
             {
-                Debug.Log("Issue writing to " + filePath);
-                return false;
+                Debug.Log("Err making directory " + path);
+                return null;
             }
         }
     }

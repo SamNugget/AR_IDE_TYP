@@ -14,7 +14,7 @@ public class CreateName : Mode
         bool isVariable = (parentType == BlockManager.FIELD || parentType == BlockManager.VARIABLE_DECLARATION);
         BlockManager.BlockVariant bV = BlockManager.createNameBlock((string)data, isVariable);
         if (isVariable)
-            ActionManager.EditWindow.addVariable((string)data, bV);
+            ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).addVariable((string)data, bV);
 
         BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(bV), beingNamed[1], false);
 
@@ -31,12 +31,11 @@ public class CreateName : Mode
 
 
 
-            GameObject spawned = WindowManager.spawnWindow(WindowManager.textEntryFab);
-            EditWindow editWindow = ActionManager.EditWindow;
-            int editWindowHeight = editWindow.getHeight();
-            spawned.transform.position = editWindow.transform.position - new Vector3(0f, FontManager.lineHeight * (editWindowHeight + 2), 0f);
+            Window3D spawned = WindowManager.spawnTextInputWindow();
+            EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
+            spawned.transform.position = editWindow.transform.position - editWindow.transform.forward;
 
-            textEntryWindow = spawned.GetComponent<TextEntryWindow>();
+            textEntryWindow = (TextEntryWindow)spawned;
             textEntryWindow.setAction(getSymbol());
         }
     }
@@ -51,7 +50,7 @@ public class CreateName : Mode
                 // delete the block being named
                 BlockManager.spawnBlock(0, beingNamed[0], false);
             }
-            WindowManager.destroyWindow(textEntryWindow.gameObject);
+            WindowManager.destroyWindow(textEntryWindow);
         }
     }
 

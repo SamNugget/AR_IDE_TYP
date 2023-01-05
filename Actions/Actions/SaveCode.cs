@@ -4,7 +4,7 @@ public class SaveCode : Act
 
     public override void onCall(object data)
     {
-        EditWindow editWindow = ActionManager.EditWindow;
+        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
         editWindow.saveCode();
         editWindow.setTitleTextMessage("Saved");
     }
