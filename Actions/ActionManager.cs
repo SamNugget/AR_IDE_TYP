@@ -64,11 +64,15 @@ public class ActionManager : MonoBehaviour
     public readonly static char PLACE_SELECT = 'p'; // mode
     public readonly static char DELETE_SELECT = 'd'; // mode
     public readonly static char INSERT_LINE = 'i'; // mode
-    public readonly static char BLOCK_CLICKED = 'B';
+    public readonly static char BLOCK_CLICKED = 'C';
     public readonly static char SAVE_CODE = 'S';
-    public readonly static char OPEN_WORKSPACE = 'O';
-    public readonly static char CREATE_VARIABLE = 'V'; // mode
-    public readonly static char CREATE_NAME = 'N'; // mode
+    public readonly static char CREATE_NAME = 'n'; // mode
+
+    public readonly static char OPEN_WORKSPACE = 'W';
+    public readonly static char OPEN_FILE = 'F';
+    public readonly static char BACK_TO_WORKSPACES = 'B';
+    public readonly static char CYCLE_CONSTRUCT = 'Y';
+    //public readonly static char CREATE_VARIABLE = 'v'; // mode
 
     private static Act[] actions;
     private static Act getAction(char symbol)
@@ -103,7 +107,10 @@ public class ActionManager : MonoBehaviour
         actionList.Add(new BlockClicked(BLOCK_CLICKED));
         actionList.Add(new SaveCode(SAVE_CODE));
         actionList.Add(new CreateName(CREATE_NAME));
+
         actionList.Add(new OpenWorkspace(OPEN_WORKSPACE));
+        actionList.Add(new OpenFile(OPEN_FILE));
+        actionList.Add(new BackToWorkspaces(BACK_TO_WORKSPACES));
 
 
 

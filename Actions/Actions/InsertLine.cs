@@ -9,21 +9,24 @@ public class InsertLine : Mode
         Block parent = ((Block)data).getParent();
         BlockManager.splitBlock(parent);
 
-        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
-        editWindow.setCollidersEnabled(false);
-        editWindow.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), false);
-        editWindow.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), true);
+        Block lastMaster = parent.getMasterBlock();
+        lastMaster.setColliderEnabled(false);
+        lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), false);
+        lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
     }
 
-    public override void onSelect(object data) { select(false); }
-
-    public override void onDeselect() { select(true); }
-
-    private void select(bool de)
+    public override void onSelect(object data)
     {
-        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
-        editWindow.setCollidersEnabled(de);
-        editWindow.setSpecialChildBlocks(BlockManager.getBlockVariantIndex("Insert Line"), !de);
+        Block lastMaster = BlockManager.lastMaster;
+        lastMaster.setColliderEnabled(false);
+        lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
+    }
+
+    public override void onDeselect()
+    {
+        Block lastMaster = BlockManager.lastMaster;
+        lastMaster.setColliderEnabled(true);
+        lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), false);
     }
 
     public override string getToolsWindowMessage()

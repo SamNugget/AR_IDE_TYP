@@ -13,7 +13,7 @@ public abstract class ButtonManager3D : MonoBehaviour
 
     public abstract void createButtons();
 
-    protected void spawnButton(string buttonLabel, char action, object data)
+    protected void spawnButton(string buttonLabel, char action, object data, string iconName = null)
     {
         GameObject spawned = Instantiate(buttonFab, gridObjectCollection.transform);
 
@@ -22,6 +22,7 @@ public abstract class ButtonManager3D : MonoBehaviour
         aB.setLabel(buttonLabel);
         aB.setAction(action);
         aB.setData(data);
+        if (iconName != null) aB.setIcon(iconName);
     }
 
     protected void deleteButton(string buttonLabel)

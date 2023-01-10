@@ -12,6 +12,6 @@ public class WorkspacesButtonManager : ButtonManager3D
         foreach (string workspace in workspaces)
             spawnButton(workspace, ActionManager.OPEN_WORKSPACE, workspace);
 
-        spawnButton("CREATE NEW", '\0', null);
+        spawnButton("CREATE NEW", '\0', null, "IconAdd");
     }
 }

@@ -34,10 +34,10 @@ public class EditWindow : Window3D
         // TODO: don't allow blocks to spill
     }
 
-    public void setCollidersEnabled(bool enabled, string typeToMask = null)
+    /*public void setCollidersEnabled(bool enabled, string typeToMask = null)
     {
         masterBlock.setColliderEnabled(enabled, typeToMask);
-    }
+    }*/
 
     public void setSpecialChildBlocks(int variantIndex, bool enabled)
     {

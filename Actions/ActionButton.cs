@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Microsoft.MixedReality.Toolkit.UI;
 
 public class ActionButton : MonoBehaviour
 {
@@ -20,10 +21,15 @@ public class ActionButton : MonoBehaviour
     {
         action = a;
     }
-    private object data;
+    protected object data;
     public void setData(object d)
     {
         data = d;
+    }
+
+    public void setIcon(string iconName)
+    {
+        transform.GetComponent<ButtonConfigHelper>().SetQuadIconByName(iconName);
     }
 
     public void callAction()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Delete : Mode
 {
@@ -37,16 +38,13 @@ public class Delete : Mode
     public override void onSelect(object data)
     {
         // hide all blocks that can't be deleted
-        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
-        editWindow.setCollidersEnabled(false, BlockManager.EMPTY);
-        editWindow.setCollidersEnabled(false, BlockManager.CONSTRUCT);
-        editWindow.setCollidersEnabled(false, BlockManager.ACCESS_MODIFIER);
-        editWindow.setCollidersEnabled(false, BlockManager.TRUE_FALSE);
+        Block lastMaster = BlockManager.lastMaster;
+        lastMaster.setColliderEnabled(false, new List<string>() { BlockManager.EMPTY, BlockManager.CONSTRUCT, BlockManager.ACCESS_MODIFIER, BlockManager.TRUE_FALSE });
     }
 
     public override void onDeselect()
     {
-        ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setCollidersEnabled(true);
+        BlockManager.lastMaster.setColliderEnabled(true);
     }
 
     public override string getToolsWindowMessage()

@@ -7,11 +7,16 @@ public class BlockManager : MonoBehaviour
     public static BlockManager singleton = null;
 
 
+    public static Block lastMaster;
+
+
     // special
     public readonly static string EMPTY = "EY";
     public readonly static string ANY = "AY";
     public readonly static string SPLITTER = "SR";
     public readonly static string INSERT_LINE = "IL";
+    public readonly static string PLACE_FIELD = "PF";
+    public readonly static string PLACE_METHOD = "PM";
 
     public readonly static string USING = "UG";
 
@@ -73,7 +78,7 @@ public class BlockManager : MonoBehaviour
     [SerializeField] private GameObject blockPrefab;
 
 
-    [SerializeField] private bool safeMode = true;
+    //[SerializeField] private bool safeMode = true;
 
 
     [SerializeField] private List<BlockVariant> blockVariants;
@@ -246,7 +251,7 @@ public class BlockManager : MonoBehaviour
 
         if (emptyOnly == true && !replacingEmpty) return;
 
-        if (singleton.safeMode && replacingEmpty)
+        /*if (singleton.safeMode && replacingEmpty)
         {
             // if replacing an empty block, check it is correct block type for parent
             BlockVariant parentVariant = parent.getBlockVariant();
@@ -325,7 +330,7 @@ public class BlockManager : MonoBehaviour
                     Debug.Log("This is in scope.");
                 }
             }
-        }
+        }*/
 
         // configure new block
         Block newBlock = Instantiate(blockFab, parent.transform).GetComponent<Block>();
@@ -336,12 +341,11 @@ public class BlockManager : MonoBehaviour
         parent.replaceSubBlock(newBlock, subBlockIndex);
 
         // draw the blocks
-        // TODO: draw blocks should be in blocks, go recursively to highest, then down
-        Window3D window = parent.getWindow3D();
-        if (window != null) ((EditWindow)window).drawBlocks();
+        lastMaster = parent.getMasterBlock();
+        if (lastMaster != null) lastMaster.drawBlock();
     }
 
-    public static void splitBlock(Block toSplit)
+    public static void splitBlock(Block toSplit, bool originalOnTop = true)
     {
         // get info from toSplit
         Block parent = toSplit.getParent();
@@ -363,12 +367,11 @@ public class BlockManager : MonoBehaviour
         // move toSplit into splitter
         toSplit.transform.parent = splitter.transform;
         toSplit.transform.localPosition += blockFab.transform.position;
-        splitter.replaceSubBlock(toSplit, 0);
+        splitter.replaceSubBlock(toSplit, originalOnTop ? 0 : 1);
 
         // draw the blocks
-        // TODO: draw blocks should be in blocks, go recursively to highest, then down
-        Window3D window = parent.getWindow3D();
-        if (window != null) ((EditWindow)window).drawBlocks();
+        lastMaster = parent.getMasterBlock();
+        if (lastMaster != null) lastMaster.drawBlock();
     }
 
 
@@ -413,7 +416,7 @@ public class BlockManager : MonoBehaviour
 
 
 
-    private static Block getChildOfNonSplitter(Block b)
+    private static Block getNonSplitterParent(Block b)
     {
         Block highestSplitter = b;
         for (int i = 0; highestSplitter != null; i++)
@@ -437,6 +440,32 @@ public class BlockManager : MonoBehaviour
         singleton.blockVariants.Add(newVariable);
 
         return newVariable;
+    }
+
+
+
+    [SerializeField] private GameObject blockButtonFab;
+    [SerializeField] private float fabWidth;
+    private static Transform spawnedBlockButton;
+    public static void moveBlockButton(Block focused)
+    {
+        if (spawnedBlockButton == null)
+            spawnedBlockButton = Instantiate(singleton.blockButtonFab).transform;
+
+        // position
+        spawnedBlockButton.parent = focused.transform;
+        spawnedBlockButton.localPosition = Vector3.zero;
+        spawnedBlockButton.localRotation = Quaternion.identity;
+        
+        // scale
+        int w = focused.getWidth();
+        int h = focused.getHeight();
+        Vector3 scale = FontManager.lettersAndLinesToVector(w, h);
+        scale *= (1f / singleton.fabWidth);
+
+        scale.z = spawnedBlockButton.localScale.z;
+
+        spawnedBlockButton.localScale = scale;
     }
 
 

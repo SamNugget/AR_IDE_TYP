@@ -20,13 +20,33 @@ public class BlockClicked : Act
             int nVIndex = BlockManager.cycleBlockVariantIndex(variant);
             BlockManager.spawnBlock(nVIndex, clicked, false);
 
-            Window3D window = clicked.getWindow3D();
-            if (window != null) ((EditWindow)window).drawBlocks();
+            Block master = clicked.getMasterBlock();
+            if (master != null) master.drawBlock();
         }
         else if (type == BlockManager.INSERT_LINE)
         {
             // this must be insert line mode, so call insert line
             currentMode.onCall(data);
+        }
+        else if (type == BlockManager.PLACE_FIELD || type == BlockManager.PLACE_METHOD)
+        {
+            // split clicked, and put it on the bottom
+            BlockManager.splitBlock(clicked, false);
+
+            Block splitter = clicked.getParent();
+
+            // get object reference to top (empty) block
+            int clickedIndex = splitter.getSubBlockIndex(clicked);
+            Block toReplace = splitter.getSubBlock(clickedIndex == 0 ? 1 : 0);
+
+            // get variant index of to place
+            int variantIndex;
+            if (type == BlockManager.PLACE_FIELD)
+                variantIndex = BlockManager.getBlockVariantIndex("Field");
+            else variantIndex = BlockManager.getBlockVariantIndex("Method");
+
+            // replace top block
+            BlockManager.spawnBlock(variantIndex, toReplace);
         }
 
 
@@ -56,6 +76,6 @@ public class BlockClicked : Act
 
 
         if (codeModified)
-            ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setTitleTextMessage("*");
+        ;//    ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setTitleTextMessage("*");
     }
 }

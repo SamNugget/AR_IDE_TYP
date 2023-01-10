@@ -49,7 +49,6 @@ namespace FileManagement
             get
             {
                 Dictionary<string, ReferenceTypeS>.KeyCollection keys = activeWorkspace._sourceFiles.Keys;
-                Debug.Log("keys: " + keys.Count);
                 string[] names = new string[keys.Count];
                 keys.CopyTo(names, 0);
                 return names;
@@ -59,6 +58,11 @@ namespace FileManagement
 
 
         public static Workspace activeWorkspace = null;
+
+        public static ReferenceTypeS getSourceFile(string name)
+        {
+            return activeWorkspace._sourceFiles[name];
+        }
 
         public static void loadWorkspace(string name)
         {

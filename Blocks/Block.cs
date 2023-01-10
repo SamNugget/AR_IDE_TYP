@@ -43,11 +43,15 @@ public class Block : MonoBehaviour
                 if (BlockManager.isCycleable(subBlockTypes[i]))
                     bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // special AM block
 
+                blockSave.subBlocks[i] = new BlockSave();
                 blockSave.subBlocks[i].blockVariant = bVI;
             }
         }
 
 
+
+        if (blockVariant == 0 || BlockManager.isCycleable(blockType) || blockType == BlockManager.PLACE_FIELD || blockType == BlockManager.PLACE_METHOD)
+            GetComponentInChildren<Collider>().enabled = true;
 
         // TODO: none of this. the highlight should move and scale itself
         transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = this.blockVariant.getColor();
@@ -60,15 +64,12 @@ public class Block : MonoBehaviour
             Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
             Block subBlockScript = subBlock.GetComponent<Block>();
 
-            if (blockSave.subBlocks == null)
-                subBlockScript.initialise(blockSave.blockVariant);
-            else
-                subBlockScript.initialise(blockSave.blockVariant, blockSave.subBlocks[i]);
+            subBlockScript.initialise(blockSave.subBlocks[i].blockVariant);
 
             subBlocks.Add(subBlockScript);
 
-            if (subBlockTypes[i] == BlockManager.NEW_NAME)
-                ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
+            //if (subBlockTypes[i] == BlockManager.NEW_NAME)
+            //    ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
         }
     }
 
@@ -81,12 +82,13 @@ public class Block : MonoBehaviour
         resizeBlock();
     }
 
-    public void setColliderEnabled(bool enabled, string typeToMask)
+    public void setColliderEnabled(bool enabled, List<string> toSet = null, bool invert = false)
     {
         foreach (Block subBlock in subBlocks)
-            subBlock.setColliderEnabled(enabled, typeToMask);
+            subBlock.setColliderEnabled(enabled, toSet);
 
-        if (typeToMask == null || blockVariant.getBlockType().Equals(typeToMask))
+        bool contains = toSet.Contains(blockVariant.getBlockType());
+        if (toSet == null || (invert ? !contains : contains))
             GetComponentInChildren<Collider>().enabled = enabled;
     }
 
@@ -260,6 +262,11 @@ public class Block : MonoBehaviour
         return subBlocks.IndexOf(b);
     }
 
+    public Block getSubBlock(int index)
+    {
+        return subBlocks[index];
+    }
+
     public void replaceSubBlock(Block b, int index, bool delete = true)
     {
         if (delete) Destroy(subBlocks[index].gameObject);
@@ -276,15 +283,35 @@ public class Block : MonoBehaviour
         return transform.parent.GetComponent<Block>();
     }
 
-    public Window3D getWindow3D()
+    public Block getMasterBlock()
     {
-        Window3D window = transform.parent.GetComponent<Window3D>();
-        if (window == null)
+        if (getParent() != null)
         {
-            Block parent = getParent();
-            if (parent != null)
-                window = parent.getWindow3D();
+            return getParent().getMasterBlock();
         }
-        return window;
+        return this;
     }
+
+
+
+    /*
+    // https://learn.microsoft.com/en-us/windows/mixed-reality/mrtk-unity/mrtk2/features/input/pointers?view=mrtkunity-2022-05#pointer-event-interfaces
+    // https://learn.microsoft.com/en-us/dotnet/api/microsoft.mixedreality.toolkit.input.imixedrealitytouchhandler?preserve-view=true&view=mixed-reality-toolkit-unity-2020-dotnet-2.8.0
+
+    public void OnTouchCompleted(HandTrackingInputEventData eventData)
+    {
+        PressableButtonHoloLens2 b = GetComponentInChildren<PressableButtonHoloLens2>();
+        Destroy(b.transform.parent.gameObject);
+    }
+
+    public void OnTouchStarted(HandTrackingInputEventData eventData)
+    {
+        BlockManager.spawnBlockButton(this);
+    }
+
+    public void OnTouchUpdated(HandTrackingInputEventData eventData)
+    {
+
+    }
+    */
 }

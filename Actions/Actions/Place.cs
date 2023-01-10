@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public class Place : Mode
 {
     public Place(char c) : base(c, /*multi-select:*/true) { }
@@ -7,11 +9,11 @@ public class Place : Mode
 
     public override void onCall(object data)
     {
-        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
-        editWindow.setCollidersEnabled(false);
-        editWindow.setCollidersEnabled(true, BlockManager.EMPTY);
-        editWindow.setCollidersEnabled(true, BlockManager.VARIABLE_NAME);
-        editWindow.setCollidersEnabled(true, BlockManager.NAME);
+        Block lastMaster = ((Block)data).getMasterBlock();
+        BlockManager.lastMaster = lastMaster;
+        lastMaster.setColliderEnabled(false);
+        lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.VARIABLE_NAME, BlockManager.NAME });
+        
         BlockManager.spawnBlock(blockToPlace, (Block)data);
     }
 
@@ -19,16 +21,15 @@ public class Place : Mode
     {
         int variantIndex = (int)data;
         blockToPlace = variantIndex;
-        EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
-        editWindow.setCollidersEnabled(false);
-        editWindow.setCollidersEnabled(true, BlockManager.EMPTY);
-        editWindow.setCollidersEnabled(true, BlockManager.VARIABLE_NAME);
-        editWindow.setCollidersEnabled(true, BlockManager.NAME);
+
+        Block lastMaster = BlockManager.lastMaster;
+        lastMaster.setColliderEnabled(false);
+        lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.VARIABLE_NAME, BlockManager.NAME });
     }
 
     public override void onDeselect()
     {
-        ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setCollidersEnabled(true);
+        BlockManager.lastMaster.setColliderEnabled(true);
     }
 
     public override string getToolsWindowMessage()

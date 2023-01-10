@@ -10,8 +10,8 @@ public class FilesButtonManager : ButtonManager3D
         string[] files = FileManager.sourceFileNames;
 
         foreach (string file in files)
-            spawnButton(file, '\0', file);
+            spawnButton(file, ActionManager.OPEN_FILE, file, "IconClass");
 
-        spawnButton("CREATE NEW", '\0', null);
+        spawnButton("CREATE NEW", '\0', null, "IconAdd");
     }
 }
