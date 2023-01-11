@@ -13,7 +13,7 @@ public class ActionManager : MonoBehaviour
     }
     private static void setCurrentMode(Mode mode, object data)
     {
-        Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsButtonManager>();
+        Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsWindow>();
 
         if (mode == currentMode) // if this is an already active mode
         {
@@ -49,6 +49,7 @@ public class ActionManager : MonoBehaviour
             catch (Exception e)
             {
                 Debug.Log("Err selecting mode.");
+                Debug.Log(e.StackTrace);
 
                 currentMode = null;
                 toolsWindow.setTitleTextMessage("ERR");
@@ -127,6 +128,7 @@ public class ActionManager : MonoBehaviour
             Debug.Log("Action " + action + " was not recognised.");
             return;
         }
+        Debug.Log("Action " + action);
 
 
 

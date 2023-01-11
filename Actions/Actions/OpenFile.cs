@@ -9,6 +9,9 @@ public class OpenFile : Act
         ReferenceTypeS rTS = FileManager.getSourceFile((string)data);
         Window3D spawned = WindowManager.spawnFileWindow();
         ((ReferenceTypeWindow)spawned).referenceTypeSave = rTS;
+        spawned.setName((string)data);
+
+        WindowManager.moveToolsWindow();
 
         // TODO: remove from list in files window
     }

@@ -83,7 +83,10 @@ namespace FileManagement
             return activeWorkspace.saveSourceFile(name);
         }
 
-        // public static bool saveAll();
+        public static bool saveAllFiles()
+        {
+            return activeWorkspace.saveAllFiles();
+        }
 
         public class Workspace
         {
@@ -183,6 +186,13 @@ namespace FileManagement
                 }
 
                 _sourceFiles.Add(name, new ReferenceTypeS(path + '/' + name, name));
+                return true;
+            }
+            
+            public bool saveAllFiles()
+            {
+                foreach (string file in _sourceFiles.Keys)
+                    if (!saveSourceFile(file)) return false;
                 return true;
             }
         }

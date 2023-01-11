@@ -13,13 +13,10 @@ public class WindowManager : MonoBehaviour
     public static float blockScale { get { return singleton._blockScale; } }
 
     [SerializeField] private GameObject workspacesWindowFab;
-    private static GameObject _workspacesWindowFab;
     [SerializeField] private GameObject filesWindowFab;
-    private static GameObject _filesWindowFab;
     [SerializeField] private GameObject fileWindowFab;
-    private static GameObject _fileWindowFab;
+    [SerializeField] private GameObject toolsWindowFab;
     [SerializeField] private GameObject textEntryWindowFab;
-    private static GameObject _textEntryWindowFab;
 
 
 
@@ -37,7 +34,7 @@ public class WindowManager : MonoBehaviour
         return null;
     }
 
-    private static void swapWindows(Window3D existingWindow, GameObject newWindowFab)
+    private static Window3D swapWindows(Window3D existingWindow, GameObject newWindowFab)
     {
         // find the workspaces window and get attributes
         bool isFollowing = existingWindow.GetComponentInChildren<RadialView>().enabled;
@@ -47,24 +44,28 @@ public class WindowManager : MonoBehaviour
         newWindow.GetComponentInChildren<RadialView>().enabled = isFollowing;
 
         destroyWindow(existingWindow);
-    }
 
-    public static void spawnFilesWindow()
-    {
-        // replace the workspace window with a files window
-        Window3D workspacesWindow = getWindowWithComponent<WorkspacesButtonManager>();
-        swapWindows(workspacesWindow, _filesWindowFab);
-
-        singleton.fileWindowParent.gameObject.SetActive(true);
+        return newWindow;
     }
 
     public static void spawnWorkspacesWindow()
     {
         // replace the files window with a workspace window
         Window3D filesWindow = getWindowWithComponent<FilesButtonManager>();
-        swapWindows(filesWindow, _workspacesWindowFab);
+        swapWindows(filesWindow, singleton.workspacesWindowFab);
 
         singleton.fileWindowParent.gameObject.SetActive(false);
+    }
+
+    public static Window3D spawnFilesWindow()
+    {
+        // replace the workspace window with a files window
+        Window3D workspacesWindow = getWindowWithComponent<WorkspacesButtonManager>();
+        Window3D filesWindow = swapWindows(workspacesWindow, singleton.filesWindowFab);
+
+        singleton.fileWindowParent.gameObject.SetActive(true);
+
+        return filesWindow;
     }
 
     public static Window3D spawnFileWindow()
@@ -73,12 +74,31 @@ public class WindowManager : MonoBehaviour
         Window3D filesWindow = getWindowWithComponent<FilesButtonManager>();
 
         // spawn new window with attributes of old window
-        return spawnWindow(_fileWindowFab, new Vector3(0f, 0f, -0.1f), filesWindow.transform, singleton.fileWindowParent);
+        return spawnWindow(singleton.fileWindowFab, new Vector3(0f, 0f, -0.1f), filesWindow.transform, singleton.fileWindowParent);
+    }
+
+    public static void moveToolsWindow()
+    {
+        // find the tools window
+        Window3D tW = getWindowWithComponent<ToolsWindow>();
+        if (tW == null)
+            tW = spawnWindow(singleton.toolsWindowFab, Vector3.zero);
+        tW.gameObject.SetActive(true);
+
+        Window3D eW = BlockManager.getLastEditWindow();
+        if (eW == null) return;
+
+        Transform beingEdited = eW.transform.GetChild(0);
+        Transform toolsWindow = tW.transform.GetChild(0);
+        toolsWindow.rotation = beingEdited.rotation;
+        toolsWindow.position = beingEdited.position + (toolsWindow.forward * -0.1f);
     }
 
     public static Window3D spawnTextInputWindow()
     {
-        return spawnWindow(_filesWindowFab, Vector3.zero, null);
+        Block masterBlock = BlockManager.lastMaster;
+
+        return spawnWindow(singleton.textEntryWindowFab, new Vector3(0f, 0f, -0.1f), masterBlock.transform);
     }
 
     private static Window3D spawnWindow(GameObject prefab, Vector3 offset, Transform toCopy = null, Transform parentOverride = null)
@@ -120,12 +140,7 @@ public class WindowManager : MonoBehaviour
     {
         singleton = this;
 
-        _workspacesWindowFab = workspacesWindowFab;
-        _filesWindowFab = filesWindowFab;
-        _fileWindowFab = fileWindowFab;
-        _textEntryWindowFab = textEntryWindowFab;
-
-        GameObject workspacesWindow = spawnWindow(_workspacesWindowFab, new Vector3(0, 0, 1f)).gameObject;
+        GameObject workspacesWindow = spawnWindow(workspacesWindowFab, new Vector3(0, 0, 1f)).gameObject;
         workspacesWindow.GetComponentInChildren<RadialView>().enabled = true;
     }
 }

@@ -1,17 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
+using Microsoft.MixedReality.Toolkit.Experimental.UI;
 
 public class TextEntryWindow : Window3D
 {
-    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private MRTKTMPInputField inputField;
     private char action;
-    public void setAction(char a) { action = a; }
 
-    public void onTextEntered()
+    public void onEndEdit()
     {
-        ActionManager.callAction(action, inputField.text);
-        inputField.text = "";
+        string input = "";
+        foreach (char c in inputField.text)
+        {
+            if (c == '_') ;
+            else if (c >= 48 && c <= 57) ; // numbers
+            else if (c >= 65 && c <= 90) ; // uppercase
+            else if (c >= 97 && c <= 122) ; // lowercase
+            else continue;
+
+            input += c;
+        }
+
+        if (input.Length != 0)
+            ActionManager.callAction(action, input);
+    }
+
+    void Start()
+    {
+        action = ActionManager.CREATE_NAME;
     }
 }

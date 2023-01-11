@@ -8,6 +8,10 @@ public class BlockManager : MonoBehaviour
 
 
     public static Block lastMaster;
+    public static Window3D getLastEditWindow()
+    {
+        return lastMaster.GetComponentInParent<Window3D>();
+    }
 
 
     // special

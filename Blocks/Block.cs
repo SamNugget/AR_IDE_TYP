@@ -68,8 +68,8 @@ public class Block : MonoBehaviour
 
             subBlocks.Add(subBlockScript);
 
-            //if (subBlockTypes[i] == BlockManager.NEW_NAME)
-            //    ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
+            if (subBlockTypes[i] == BlockManager.NEW_NAME)
+                ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
         }
     }
 
@@ -87,8 +87,14 @@ public class Block : MonoBehaviour
         foreach (Block subBlock in subBlocks)
             subBlock.setColliderEnabled(enabled, toSet);
 
+        if (toSet == null)
+        {
+            GetComponentInChildren<Collider>().enabled = enabled;
+            return;
+        }
+
         bool contains = toSet.Contains(blockVariant.getBlockType());
-        if (toSet == null || (invert ? !contains : contains))
+        if (invert ? !contains : contains)
             GetComponentInChildren<Collider>().enabled = enabled;
     }
 

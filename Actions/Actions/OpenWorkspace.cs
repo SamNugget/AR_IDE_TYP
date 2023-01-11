@@ -7,6 +7,7 @@ public class OpenWorkspace : Act
     public override void onCall(object data)
     {
         FileManager.loadWorkspace((string)data);
-        WindowManager.spawnFilesWindow();
+        Window3D filesWindow = WindowManager.spawnFilesWindow();
+        filesWindow.setName((string)data);
     }
 }

@@ -6,12 +6,20 @@ using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
 
 public class Window3D : MonoBehaviour
 {
-    public string name = "i_am_a_title";
+    [SerializeField] private TextMeshPro titleText;
+    [SerializeField] private string name = "";
+    public void setName(string name)
+    {
+        this.name = name;
+        setTitleTextMessage("");
+    }
 
     public void setTitleTextMessage(string message)
     {
-        RectTransform topText = (RectTransform)transform.GetChild(1);
-        topText.GetComponent<TextMeshPro>().text = name + " - " + message;
+        if (message == null || message == "")
+            titleText.GetComponent<TextMeshPro>().text = name;
+        else
+            titleText.GetComponent<TextMeshPro>().text = name + " - " + message;
     }
 
 
@@ -30,9 +38,20 @@ public class Window3D : MonoBehaviour
             WindowManager.stopAllFollowing(this);
     }
 
+
+
+    public void close()
+    {
+        WindowManager.destroyWindow(this);
+    }
+
+
+
     void Awake()
     {
         radialView = GetComponentInChildren<RadialView>();
         if (radialView == null) Debug.LogError("Err no radial view component");
+
+        setTitleTextMessage("");
     }
 }

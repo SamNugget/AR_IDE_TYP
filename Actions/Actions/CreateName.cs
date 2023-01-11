@@ -3,22 +3,25 @@ using UnityEngine;
 public class CreateName : Mode
 {
     private TextEntryWindow textEntryWindow;
-    private Block[] beingNamed;
-    private bool named = false;
+    private Block beingNamed;
+    private Block beingReplaced;
 
     public CreateName(char c) : base(c, /*multi-select:*/false) { }
 
     public override void onCall(object data)
     {
-        string parentType = beingNamed[0].getBlockVariant().getBlockType();
+        string parentType = beingNamed.getBlockVariant().getBlockType();
         bool isVariable = (parentType == BlockManager.FIELD || parentType == BlockManager.VARIABLE_DECLARATION);
+
         BlockManager.BlockVariant bV = BlockManager.createNameBlock((string)data, isVariable);
-        if (isVariable)
-            ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).addVariable((string)data, bV);
 
-        BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(bV), beingNamed[1], false);
+        // TODO: fix this
+        //if (isVariable)
+            //((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).addVariable((string)data, bV);
 
-        named = true;
+        BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(bV), beingReplaced, false);
+        beingReplaced = null;
+
         ActionManager.clearMode(); // this calls onDeselect
     }
 
@@ -26,17 +29,10 @@ public class CreateName : Mode
     {
         if (textEntryWindow == null)
         {
-            beingNamed = (Block[])data;
-            // beingNamed[0] = class, method or variable block, beingNamed[1] = the empty block
+            beingNamed = ((Block[])data)[0]; // construct, method or variable block
+            beingReplaced = ((Block[])data)[1]; // the empty block
 
-
-
-            Window3D spawned = WindowManager.spawnTextInputWindow();
-            EditWindow editWindow = (EditWindow)WindowManager.getWindowWithComponent<EditWindow>();
-            spawned.transform.position = editWindow.transform.position - editWindow.transform.forward;
-
-            textEntryWindow = (TextEntryWindow)spawned;
-            textEntryWindow.setAction(getSymbol());
+            textEntryWindow = (TextEntryWindow)WindowManager.spawnTextInputWindow();
         }
     }
 
@@ -44,12 +40,10 @@ public class CreateName : Mode
     {
         if (textEntryWindow != null)
         {
-            if (named) named = false;
-            else
-            {
-                // delete the block being named
-                BlockManager.spawnBlock(0, beingNamed[0], false);
-            }
+            // if onCall() has not been successful, delete the parent of empty
+            if (beingReplaced != null)
+                BlockManager.spawnBlock(0, beingNamed, false);
+
             WindowManager.destroyWindow(textEntryWindow);
         }
     }
