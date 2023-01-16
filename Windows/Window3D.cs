@@ -40,7 +40,7 @@ public class Window3D : MonoBehaviour
 
 
 
-    public void close()
+    public virtual void close()
     {
         WindowManager.destroyWindow(this);
     }

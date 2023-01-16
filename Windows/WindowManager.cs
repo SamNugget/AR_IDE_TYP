@@ -96,9 +96,10 @@ public class WindowManager : MonoBehaviour
 
     public static Window3D spawnTextInputWindow()
     {
-        Block masterBlock = BlockManager.lastMaster;
+        //Block masterBlock = BlockManager.lastMaster;
+        Window3D rTW = getWindowWithComponent<ReferenceTypeWindow>();
 
-        return spawnWindow(singleton.textEntryWindowFab, new Vector3(0f, 0f, -0.1f), masterBlock.transform);
+        return spawnWindow(singleton.textEntryWindowFab, new Vector3(0f, 0f, -0.1f), rTW.transform);
     }
 
     private static Window3D spawnWindow(GameObject prefab, Vector3 offset, Transform toCopy = null, Transform parentOverride = null)

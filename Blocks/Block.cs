@@ -70,7 +70,7 @@ public class Block : MonoBehaviour
             subBlocks.Add(subBlockScript);
 
             if (subBlockTypes[i] == BlockManager.NEW_NAME)
-                ActionManager.callAction(ActionManager.CREATE_NAME, new Block[] { this, subBlockScript });
+                ActionManager.callAction(ActionManager.NAME_VARIABLE, new Block[] { this, subBlockScript });
         }
     }
 
@@ -298,27 +298,4 @@ public class Block : MonoBehaviour
         }
         return this;
     }
-
-
-
-    /*
-    // https://learn.microsoft.com/en-us/windows/mixed-reality/mrtk-unity/mrtk2/features/input/pointers?view=mrtkunity-2022-05#pointer-event-interfaces
-    // https://learn.microsoft.com/en-us/dotnet/api/microsoft.mixedreality.toolkit.input.imixedrealitytouchhandler?preserve-view=true&view=mixed-reality-toolkit-unity-2020-dotnet-2.8.0
-
-    public void OnTouchCompleted(HandTrackingInputEventData eventData)
-    {
-        PressableButtonHoloLens2 b = GetComponentInChildren<PressableButtonHoloLens2>();
-        Destroy(b.transform.parent.gameObject);
-    }
-
-    public void OnTouchStarted(HandTrackingInputEventData eventData)
-    {
-        BlockManager.spawnBlockButton(this);
-    }
-
-    public void OnTouchUpdated(HandTrackingInputEventData eventData)
-    {
-
-    }
-    */
 }

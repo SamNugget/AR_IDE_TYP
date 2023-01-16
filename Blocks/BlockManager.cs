@@ -33,7 +33,6 @@ public class BlockManager : MonoBehaviour
     // namespace, class name, method name or variable name
     public readonly static string NEW_NAME = "NN"; // can be copied but not deleted
     public readonly static string NAME = "NM";
-    public readonly static string VARIABLE_NAME = "VN";
 
     // for fields and methods
     public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
@@ -243,98 +242,23 @@ public class BlockManager : MonoBehaviour
 
 
     // called when spawning and deleting (/spawning empty block) block
-    public static void spawnBlock(int blockVariant, Block toReplace, bool emptyOnly = true)
+    public static Block spawnBlock(int blockVariant, Block toReplace, bool emptyOnly = true)
     {
-        // get info from emptyBlock
+        // can this block be replaced
+        bool replacingEmpty = toReplace.getBlockVariant().getBlockType().Equals(EMPTY);
+        if (emptyOnly == true && !replacingEmpty)
+        {
+            Debug.Log("Err, trying to replace a non-empty block");
+            return null;
+        }
+
+
+
+        // get info from block being replaced (usually empty block)
         Block parent = toReplace.getParent();
         int subBlockIndex = parent.getSubBlockIndex(toReplace);
 
 
-
-        bool replacingEmpty = toReplace.getBlockVariant().getBlockType().Equals(EMPTY);
-
-        if (emptyOnly == true && !replacingEmpty) return;
-
-        /*if (singleton.safeMode && replacingEmpty)
-        {
-            // if replacing an empty block, check it is correct block type for parent
-            BlockVariant parentVariant = parent.getBlockVariant();
-            int index = subBlockIndex;
-
-            // splitters should take restrictions of parent
-            if (parentVariant == getBlockVariant("Splitter"))
-            {
-                Block highestSplitter = getChildOfNonSplitter(parent);
-
-                parentVariant = highestSplitter.getParent().getBlockVariant();
-                index = highestSplitter.getParent().getSubBlockIndex(highestSplitter);
-            }
-
-
-
-            BlockVariant bV = getBlockVariant(blockVariant);
-            string newBlockType = bV.getBlockType();
-            string[] sBTs = parentVariant.getSubBlockTypes();
-            string expectedType = sBTs[index];
-
-            if (expectedType == newBlockType) ;
-            else if (expectedType == CONSTRUCT_BODY)
-            {
-                if (newBlockType != FIELD && newBlockType != METHOD)
-                {
-                    Debug.Log("Only fields, methods and constructors may go in the construct body.");
-                    return;
-                }
-            }
-            else if (expectedType == BODY)
-            {
-                if (newBlockType != VARIABLE_DECLARATION)
-                {
-                    Debug.Log("That block can't go here.");
-                    return;
-                }
-            }
-            else if (expectedType == NEW_NAME && (newBlockType == NAME || newBlockType == VARIABLE_NAME)) ;
-            else if (newBlockType == VARIABLE_NAME && expectedType == BOOLEAN_EXPRESSION) ;
-            else if (newBlockType == NAME && expectedType == TYPE) ;
-            else if (expectedType != ANY)
-            {
-                Debug.Log(expectedType + " block expected, not " + newBlockType + ".");
-                return;
-            }
-
-
-
-            if (newBlockType == VARIABLE_NAME)
-            {
-                // find variable instance in window
-                Variable variable = ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).getVariable(bV.getName());
-                if (variable == null)
-                {
-                    Debug.Log("Err: variable not saved.");
-                    // drop out of if and place anyways
-                }
-                // if not declared
-                else if (variable.declarationBlock == null)
-                {
-                    variable.declarationBlock = parent.getParent(); // declare it!
-                }
-                // declared, check if in scope of declaration (walk up tree)
-                else
-                {
-                    bool inScope = false;
-                    for (Block p = parent; p != null; p = p.getParent())
-                        if (p == variable.declarationBlock) { inScope = true; break; }
-
-                    if (inScope == false)
-                    {
-                        Debug.Log("Must be placed in scope.");
-                        return;
-                    }
-                    Debug.Log("This is in scope.");
-                }
-            }
-        }*/
 
         // configure new block
         Block newBlock = Instantiate(blockFab, parent.transform).GetComponent<Block>();
@@ -347,6 +271,8 @@ public class BlockManager : MonoBehaviour
         // draw the blocks
         lastMaster = parent.getMasterBlock();
         if (lastMaster != null) lastMaster.drawBlock();
+
+        return newBlock;
     }
 
     public static void splitBlock(Block toSplit, bool originalOnTop = true)
@@ -437,13 +363,13 @@ public class BlockManager : MonoBehaviour
 
 
     [SerializeField] private Color variableColor;
-    public static BlockVariant createNameBlock(string name, bool variable)
+    public static int createNameBlock(string name)
     {
         string[] lines = new string[] { name };
-        BlockVariant newVariable = new BlockVariant(name, (variable ? VARIABLE_NAME : NAME), singleton.variableColor, false, lines);
+        BlockVariant newVariable = new BlockVariant(name, NAME, singleton.variableColor, false, lines);
         singleton.blockVariants.Add(newVariable);
 
-        return newVariable;
+        return singleton.blockVariants.Count - 1;
     }
 
 

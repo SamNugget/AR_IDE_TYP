@@ -27,6 +27,12 @@ public class TextEntryWindow : Window3D
             ActionManager.callCurrentMode(input);
     }
 
+    public override void close()
+    {
+        ActionManager.clearMode();
+        base.close();
+    }
+
     void Start()
     {
         action = ActionManager.CREATE_NAME;

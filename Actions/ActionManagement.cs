@@ -14,6 +14,8 @@ namespace ActionManagement
         public readonly static char DELETE_SELECT = 'd'; // mode
         public readonly static char INSERT_LINE = 'i'; // mode
         public readonly static char CREATE_NAME = 'n'; // mode
+        public readonly static char NAME_FIELD_OR_METHOD = 'N';
+        public readonly static char NAME_VARIABLE = 'V';
 
         // TOOLS
         public readonly static char SAVE_CODE = 'S';
@@ -116,6 +118,8 @@ namespace ActionManagement
             actions.Add(DELETE_SELECT, new Delete());
             actions.Add(INSERT_LINE, new InsertLine());
             actions.Add(CREATE_NAME, new CreateName());
+            actions.Add(NAME_FIELD_OR_METHOD, new NameFieldOrMethod());
+            actions.Add(NAME_VARIABLE, new NameVariable());
 
             actions.Add(SAVE_CODE, new SaveCode());
 
@@ -210,23 +214,7 @@ namespace ActionManagement
             }
             else if (type == BlockManager.PLACE_FIELD || type == BlockManager.PLACE_METHOD)
             {
-                // split clicked, and put it on the bottom
-                BlockManager.splitBlock(clicked, false);
-
-                Block splitter = clicked.getParent();
-
-                // get object reference to top (empty) block
-                int clickedIndex = splitter.getSubBlockIndex(clicked);
-                Block toReplace = splitter.getSubBlock(clickedIndex == 0 ? 1 : 0);
-
-                // get variant index of to place
-                int variantIndex;
-                if (type == BlockManager.PLACE_FIELD)
-                    variantIndex = BlockManager.getBlockVariantIndex("Field");
-                else variantIndex = BlockManager.getBlockVariantIndex("Method");
-
-                // replace top block
-                BlockManager.spawnBlock(variantIndex, toReplace);
+                ActionManager.callAction(ActionManager.NAME_FIELD_OR_METHOD, clicked);
             }
 
 
@@ -238,7 +226,7 @@ namespace ActionManagement
 
 
             // check for lower-priority special types
-            else if (type == BlockManager.VARIABLE_NAME || type == BlockManager.NAME)
+            else if (type == BlockManager.NAME)
             {
                 int variantIndex = BlockManager.getBlockVariantIndex(variant);
                 ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);
@@ -272,7 +260,7 @@ namespace ActionManagement
             Block lastMaster = ((Block)data).getMasterBlock();
             BlockManager.lastMaster = lastMaster;
             lastMaster.setColliderEnabled(false);
-            lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.VARIABLE_NAME, BlockManager.NAME });
+            lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
 
             BlockManager.spawnBlock(blockToPlace, (Block)data);
         }
@@ -288,7 +276,7 @@ namespace ActionManagement
 
             Block lastMaster = BlockManager.lastMaster;
             lastMaster.setColliderEnabled(false);
-            lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.VARIABLE_NAME, BlockManager.NAME });
+            lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
         }
 
         public override void onDeselect()
@@ -401,25 +389,16 @@ namespace ActionManagement
 
     public class CreateName : Mode
     {
-        private TextEntryWindow textEntryWindow;
-        private Block beingNamed;
-        private Block beingReplaced;
+        private Window3D textEntryWindow;
+        
+        private NameCreator nameCreator;
 
         public override void onCall(object data)
         {
-            string parentType = beingNamed.getBlockVariant().getBlockType();
-            bool isVariable = (parentType == BlockManager.FIELD || parentType == BlockManager.VARIABLE_DECLARATION);
+            nameCreator.onFinishedNaming(true, (string)data);
 
-            BlockManager.BlockVariant bV = BlockManager.createNameBlock((string)data, isVariable);
-
-            // TODO: fix this
-            //if (isVariable)
-            //((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).addVariable((string)data, bV);
-
-            BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(bV), beingReplaced, false);
-            beingReplaced = null;
-
-            ActionManager.clearMode(); // this calls onDeselect
+            WindowManager.destroyWindow(textEntryWindow);
+            ActionManager.clearMode();
         }
 
         public override void onSelect(object data)
@@ -428,22 +407,19 @@ namespace ActionManagement
 
 
 
-            if (textEntryWindow != null)
-                onDeselect();
+            if (textEntryWindow != null) onDeselect();
 
-            beingNamed = ((Block[])data)[0]; // construct, method or variable block
-            beingReplaced = ((Block[])data)[1]; // the empty block
+            nameCreator = (NameCreator)data;
 
-            textEntryWindow = (TextEntryWindow)WindowManager.spawnTextInputWindow();
+            textEntryWindow = WindowManager.spawnTextInputWindow();
+            textEntryWindow.setName(nameCreator.getTextEntryWindowMessage());
         }
 
         public override void onDeselect()
         {
             if (textEntryWindow != null)
             {
-                // if onCall() has not been successful, delete the parent of empty
-                if (beingReplaced != null)
-                    BlockManager.spawnBlock(0, beingNamed, false);
+                nameCreator.onFinishedNaming(false, null);
 
                 WindowManager.destroyWindow(textEntryWindow);
             }
@@ -452,6 +428,103 @@ namespace ActionManagement
         public override string getToolsWindowMessage()
         {
             return ("Naming...");
+        }
+    }
+
+
+
+    public abstract class NameCreator
+    {
+        public abstract void onFinishedNaming(bool success, string name);
+        public abstract string getTextEntryWindowMessage();
+    }
+
+
+
+    public class NameFieldOrMethod : NameCreator, Act
+    {
+        // BlockClicked ==> NameFieldOrMethod ==> CreateName ==> NameFieldOrMethod
+
+        private Block clicked;
+        private bool field;
+
+        public void onCall(object data)
+        {
+            clicked = (Block)data;
+            field = clicked.getBlockVariant().getBlockType() == BlockManager.PLACE_FIELD;
+
+            ActionManager.callAction(ActionManager.CREATE_NAME, this);
+        }
+
+        public override void onFinishedNaming(bool success, string name)
+        {
+            if (!success) return;
+
+            // split clicked, and put it on the bottom
+            BlockManager.splitBlock(clicked, false);
+
+            Block splitter = clicked.getParent();
+
+            // get object reference to top (empty) block
+            int clickedIndex = splitter.getSubBlockIndex(clicked);
+            Block toReplace = splitter.getSubBlock(clickedIndex == 0 ? 1 : 0);
+
+            // get variant index of to place
+            int variantIndex = BlockManager.getBlockVariantIndex(field ? "Field" : "Method");
+
+            // replace top block
+            Block newBlock = BlockManager.spawnBlock(variantIndex, toReplace);
+
+            // replace name block
+            Block emptyNameBlock = newBlock.getSubBlock(2);
+            int nameBlockIndex = BlockManager.createNameBlock(name);
+            BlockManager.spawnBlock(nameBlockIndex, emptyNameBlock);
+        }
+
+        public override string getTextEntryWindowMessage()
+        {
+            if (field) return "Name Field:";
+            else return "Name Method:";
+        }
+    }
+
+
+
+    public class NameVariable : NameCreator, Act
+    {
+        // BlockClicked ==> NameVariable ==> CreateName ==> NameVariable
+
+        private Block beingNamed; // variable declaration block
+        private Block beingReplaced; // the empty block
+
+        public void onCall(object data)
+        {
+            beingNamed = ((Block[])data)[0];
+            beingReplaced = ((Block[])data)[1];
+
+            ActionManager.callAction(ActionManager.CREATE_NAME, this);
+        }
+
+        public override void onFinishedNaming(bool success, string name)
+        {
+            if (success)
+            {
+                // create new block type for this name
+                int nameBlockIndex = BlockManager.createNameBlock(name);
+
+                // replace empty block with this new name block
+                BlockManager.spawnBlock(nameBlockIndex, beingReplaced, false);
+            }
+            else
+            {
+                // delete the parent block which has a name as part of it
+                BlockManager.spawnBlock(0, beingNamed, false);
+            }
+        }
+
+        public override string getTextEntryWindowMessage()
+        {
+            return "Name Variable:";
         }
     }
 
