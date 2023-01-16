@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
+using ActionManagement;
 
 public class TextEntryWindow : Window3D
 {
@@ -23,7 +24,7 @@ public class TextEntryWindow : Window3D
         }
 
         if (input.Length != 0)
-            ActionManager.callAction(action, input);
+            ActionManager.callCurrentMode(input);
     }
 
     void Start()
