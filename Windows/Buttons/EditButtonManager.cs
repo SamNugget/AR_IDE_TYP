@@ -8,7 +8,6 @@ using ActionManagement;
 
 public class EditButtonManager : ButtonManager2D
 {
-    [SerializeField] private EditWindow editWindow;
     [SerializeField] private Transform blockButtonsParent;
 
     // TODO: lists could be more dynamic, parent class could have add/remove button functions

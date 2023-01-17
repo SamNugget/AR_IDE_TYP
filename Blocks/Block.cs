@@ -74,13 +74,25 @@ public class Block : MonoBehaviour
         }
     }
 
-    public void drawBlock()
+    public void drawBlock(bool master = true)
     {
         foreach (Block subBlock in subBlocks)
-            subBlock.drawBlock();
+            subBlock.drawBlock(false);
 
         populateTextBox();
         resizeBlock();
+
+        if (master)
+        {
+            // scale the fileWindow (if applicable)
+            Window3D fileWindow = transform.GetComponentInParent<Window3D>();
+            if (fileWindow != null)
+            {
+                Vector2 scale = FontManager.lettersAndLinesToVector(getWidth(), getHeight());
+                fileWindow.setWidth(scale.x);
+                fileWindow.setHeight(scale.y);
+            }
+        }
     }
 
     public void setColliderEnabled(bool enabled, List<string> toSet = null, bool invert = false)

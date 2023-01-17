@@ -22,6 +22,18 @@ public class Window3D : MonoBehaviour
             titleText.GetComponent<TextMeshPro>().text = name + " - " + message;
     }
 
+    public void setWidth(float width)
+    {
+        Transform bP = transform.GetChild(0).Find("Backplate");
+        bP.localScale = new Vector3(width * WindowManager.blockScale, bP.localScale.y, bP.localScale.z);
+    }
+
+    public void setHeight(float height)
+    {
+        Transform bP = transform.GetChild(0).Find("Backplate");
+        bP.localScale = new Vector3(bP.localScale.x, height * WindowManager.blockScale, bP.localScale.z);
+    }
+
 
 
     private RadialView radialView;

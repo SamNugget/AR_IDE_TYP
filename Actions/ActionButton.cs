@@ -23,7 +23,7 @@ public class ActionButton : MonoBehaviour
         action = a;
     }
     protected object data;
-    public void setData(object d)
+    public virtual void setData(object d)
     {
         data = d;
     }

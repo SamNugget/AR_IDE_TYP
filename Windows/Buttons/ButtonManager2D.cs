@@ -11,23 +11,22 @@ public abstract class ButtonManager2D : MonoBehaviour
 
     [SerializeField] protected float buttonSpacing;
 
-    [SerializeField] protected bool alignRightEdge;
-
 
 
     public abstract void distributeButtons();
 
     protected List<Transform> distributeVertically(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
     {
-        return distribute(buttonLabels, actions, data, false, parent);
+        return distribute(buttonLabels, actions, data, parent);
     }
 
     protected List<Transform> distributeHorizontally(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
     {
-        return distribute(buttonLabels, actions, data, true, parent);
+        Debug.Log("Err, horizontal button placement was removed.");
+        return /*distribute(buttonLabels, actions, data, parent)*/null;
     }
 
-    private List<Transform> distribute(string[] buttonLabels, char[] actions, object[] data, bool horizontal, Transform parent)
+    private List<Transform> distribute(string[] buttonLabels, char[] actions, object[] data, Transform parent)
     {
         if (buttonLabels.Length != actions.Length || buttonLabels.Length != data.Length)
         {
@@ -39,62 +38,45 @@ public abstract class ButtonManager2D : MonoBehaviour
         if (parent == null) parent = transform;
 
 
-        float textHeight = FontManager.lineHeight;
         List<Transform> buttons = new List<Transform>();
         for (int i = 0; i < buttonLabels.Length; i++)
         {
-            float width = FontManager.lettersAndLinesToVector(buttonLabels[i].Length + 1, 0).x;
-            float x = alignRightEdge ? -(width / 2f) : (width / 2f);
-
-            Vector2 position;
-            if (horizontal)
-            {
-                if (buttons.Count > 0)
-                {
-                    float prevButtWidth = FontManager.lettersAndLinesToVector(buttonLabels[i - 1].Length + 1, 0).x;
-                    float newX = (prevButtWidth / 2f) + buttonSpacing;
-                    x += (alignRightEdge ? -newX : newX);
-
-                    position = buttons[buttons.Count - 1].localPosition;
-                    position.x += x;
-                }
-                else position = new Vector2(x, -(textHeight / 2f));
-            }
-            else
-            {
-                position = new Vector2(x, -(i * (textHeight + buttonSpacing) + (textHeight / 2f)));
-            }
-
-            Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], position, parent);
+            Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], i, parent);
             buttons.Add(newButton);
         }
 
         return buttons;
     }
 
-    protected Transform spawnButton(string buttonLabel, char action, object data, Vector2 position, Transform parent)
+    protected Transform spawnButton(string buttonLabel, char action, object data, int row, Transform parent)
     {
-        float textHeight = FontManager.lineHeight;
-        float width = FontManager.lettersAndLinesToVector(buttonLabel.Length + 1, 0).x;
+        Vector2 planeSize = FontManager.lettersAndLinesToVector(buttonLabel.Length, 1);
+        float width = planeSize.x;
+        float height = planeSize.y;
+        float s = WindowManager.blockScale;
 
         // spawn, position and scale button
-        RectTransform newButton = Instantiate(buttonFab, parent).GetComponent<RectTransform>();
-        newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textHeight * 100f);
-        newButton.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width * 100f);
-        newButton.localPosition = position;
+        Transform newButton = Instantiate(buttonFab, parent).GetComponent<Transform>();
+        newButton.localPosition = new Vector3(0f, (row * -height * s) + buttonSpacing, 0f);
+        newButton.localScale = new Vector3(s, s, s);
+
+        // scale body plane
+        Transform body = newButton.GetChild(0);
+        body.localScale = new Vector3(width, height, 1f);
+
+        // scale body text
+        RectTransform tB = (RectTransform)newButton.GetChild(1);
+        tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+        tB.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        tB.localPosition = new Vector3(width / 2f, -height / 2f, tB.localPosition.z);
 
         // set text of button
-        newButton.GetComponentInChildren<TextMeshProUGUI>().text = buttonLabel;
+        tB.GetComponent<TextMeshPro>().text = buttonLabel;
 
         // configure actionbuttonscript
         ActionButton actionButtonScript = newButton.GetComponent<ActionButton>();
         actionButtonScript.setAction(action);
         actionButtonScript.setData(data);
-
-        // add callback to actionbuttonscript on buttonscript
-        Button buttonScript = newButton.GetComponent<Button>();
-        UnityEvent uE = buttonScript.onClick;
-        uE.AddListener(actionButtonScript.callAction);
 
         return newButton;
     }
