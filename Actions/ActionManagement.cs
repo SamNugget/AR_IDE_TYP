@@ -28,41 +28,63 @@ namespace ActionManagement
 
 
 
+        //public static List<string> BlocksEnabledForPlacing = new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
+        //public static List<string> BlocksDisabledDefault = new List<string>() { BlockManager.EMPTY });
+
+
+
         private static Mode currentMode = null;
         private static void setCurrentMode(Mode mode, object data)
         {
-            Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsWindow>();
+            string toolsWindowMessage = "";
 
-            if (mode == currentMode) // if this is an already active mode
+
+            // if this is an already active mode
+            if (mode == currentMode)
             {
+                if (mode == null) return;
+
+
                 try
                 {
-                    if (mode != null)
+                    // if this mode can selected repeatedly
+                    // (and is called outside of ActionManager)
+                    if (mode.multiSelect)
                     {
-                        if (mode.multiSelect)
-                        {
-                            mode.onSelect(data);
-                            toolsWindow.setTitleTextMessage(mode.getToolsWindowMessage());
-                        }
-                        else mode.onCall(data);
+                        mode.onSelect(data);
+                        toolsWindowMessage = mode.getToolsWindowMessage();
+                    }
+                    else
+                    {
+                        mode.onCall(data);
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.Log("Err calling mode.");
                     Debug.Log(e.StackTrace);
-                    return;
+
+                    currentMode = null;
+                    toolsWindowMessage = "ERR MODE CALL";
                 }
             }
-            else // if this is not active
+
+
+            // if this a new mode
+            else
             {
-                if (currentMode != null) currentMode.onDeselect(); // deselect current mode
+                if (currentMode != null) currentMode.onDeselect(); // deactivate current mode
 
                 currentMode = mode; // switch state
 
                 try
                 {
-                    if (mode != null) mode.onSelect(data);
+                    if (mode != null)
+                    {
+                        // activate mode (if exists)
+                        mode.onSelect(data);
+                        toolsWindowMessage = mode.getToolsWindowMessage();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -70,13 +92,15 @@ namespace ActionManagement
                     Debug.Log(e.StackTrace);
 
                     currentMode = null;
-                    toolsWindow.setTitleTextMessage("ERR");
-                    return;
+                    toolsWindowMessage = "ERR MODE SELECT";
                 }
-
-                if (mode == null) toolsWindow.setTitleTextMessage("");
-                else toolsWindow.setTitleTextMessage(mode.getToolsWindowMessage());
             }
+
+
+            // set message on toolsWindow
+            Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsWindow>();
+            if (toolsWindow != null)
+                toolsWindow.setTitleTextMessage(toolsWindowMessage);
         }
         public static bool callCurrentMode(object data)
         {
@@ -134,12 +158,15 @@ namespace ActionManagement
         {
             if (actions == null) initialiseActions();
 
-            Act newAction = actions[action];
-            if (newAction == null)
+            if (!actions.ContainsKey(action))
             {
                 Debug.Log("Action " + action + " was not recognised.");
                 return;
             }
+
+            Act newAction = actions[action];
+
+
 
 
 
@@ -258,7 +285,6 @@ namespace ActionManagement
         public override void onCall(object data)
         {
             Block lastMaster = ((Block)data).getMasterBlock();
-            BlockManager.lastMaster = lastMaster;
             lastMaster.setColliderEnabled(false);
             lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
 
@@ -274,14 +300,14 @@ namespace ActionManagement
             int variantIndex = (int)data;
             blockToPlace = variantIndex;
 
-            Block lastMaster = BlockManager.lastMaster;
+            Block lastMaster = BlockManager.getLastMaster();
             lastMaster.setColliderEnabled(false);
             lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
         }
 
         public override void onDeselect()
         {
-            BlockManager.lastMaster.setColliderEnabled(true);
+            BlockManager.getLastMaster().setColliderEnabled(true);
         }
 
         public override string getToolsWindowMessage()
@@ -333,13 +359,13 @@ namespace ActionManagement
 
 
             // hide all blocks that can't be deleted
-            Block lastMaster = BlockManager.lastMaster;
+            Block lastMaster = BlockManager.getLastMaster();
             lastMaster.setColliderEnabled(false, new List<string>() { BlockManager.EMPTY, BlockManager.CONSTRUCT, BlockManager.ACCESS_MODIFIER, BlockManager.TRUE_FALSE });
         }
 
         public override void onDeselect()
         {
-            BlockManager.lastMaster.setColliderEnabled(true);
+            BlockManager.getLastMaster().setColliderEnabled(true);
         }
 
         public override string getToolsWindowMessage()
@@ -367,14 +393,14 @@ namespace ActionManagement
 
         public override void onSelect(object data)
         {
-            Block lastMaster = BlockManager.lastMaster;
+            Block lastMaster = BlockManager.getLastMaster();
             lastMaster.setColliderEnabled(false);
             lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
         }
 
         public override void onDeselect()
         {
-            Block lastMaster = BlockManager.lastMaster;
+            Block lastMaster = BlockManager.getLastMaster();
             lastMaster.setColliderEnabled(true);
             lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), false);
         }
@@ -567,7 +593,7 @@ namespace ActionManagement
             ((ReferenceTypeWindow)spawned).referenceTypeSave = rTS;
             spawned.setName((string)data);
 
-            WindowManager.moveToolsWindow();
+            //WindowManager.moveEditToolWindows();
 
             // TODO: remove from list in files window
         }

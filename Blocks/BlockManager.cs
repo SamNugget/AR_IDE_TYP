@@ -6,11 +6,25 @@ public class BlockManager : MonoBehaviour
 {
     public static BlockManager singleton = null;
 
-
-    public static Block lastMaster;
-    public static Window3D getLastEditWindow()
+    private static Block _lastMaster;
+    private static Block lastMaster
     {
-        return lastMaster.GetComponentInParent<Window3D>();
+        set
+        {
+            if (value == null) return;
+
+            _lastMaster = value;
+            _lastMaster.drawBlock();
+            WindowManager.moveEditToolWindows();
+        }
+    }
+    public static Block getLastMaster()
+    {
+        return _lastMaster;
+    }
+    public static Window3D getLastWindow()
+    {
+        return _lastMaster.GetComponentInParent<Window3D>();
     }
 
 
@@ -40,7 +54,7 @@ public class BlockManager : MonoBehaviour
 
     // for inside methods and constructors
     public readonly static string BODY = "BY"; // if statements, variable declaration, etc.
-    public readonly static string VARIABLE_DECLARATION = "VD"; // @TP @VN
+    //public readonly static string VARIABLE_DECLARATION = "VD"; // @TP @VN
 
     // for if statements, while loops
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
@@ -270,7 +284,6 @@ public class BlockManager : MonoBehaviour
 
         // draw the blocks
         lastMaster = parent.getMasterBlock();
-        if (lastMaster != null) lastMaster.drawBlock();
 
         return newBlock;
     }
@@ -301,7 +314,6 @@ public class BlockManager : MonoBehaviour
 
         // draw the blocks
         lastMaster = parent.getMasterBlock();
-        if (lastMaster != null) lastMaster.drawBlock();
     }
 
 

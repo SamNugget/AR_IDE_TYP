@@ -57,7 +57,7 @@ public abstract class ButtonManager2D : MonoBehaviour
 
         // spawn, position and scale button
         Transform newButton = Instantiate(buttonFab, parent).GetComponent<Transform>();
-        newButton.localPosition = new Vector3(0f, (row * -height * s) + buttonSpacing, 0f);
+        newButton.localPosition = new Vector3(0f, (row * (-height - buttonSpacing) * s), 0f);
         newButton.localScale = new Vector3(s, s, s);
 
         // scale body plane
