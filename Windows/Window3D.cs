@@ -11,15 +11,13 @@ public class Window3D : MonoBehaviour
     public void setName(string name)
     {
         this.name = name;
-        setTitleTextMessage("");
+        setTitleTextMessage("", false);
     }
 
-    public void setTitleTextMessage(string message)
+    public void setTitleTextMessage(string message, bool dash = true)
     {
-        if (message == null || message == "")
-            titleText.GetComponent<TextMeshPro>().text = name;
-        else
-            titleText.GetComponent<TextMeshPro>().text = name + " - " + message;
+        if (dash) titleText.GetComponent<TextMeshPro>().text = name + " - " + message;
+        else      titleText.GetComponent<TextMeshPro>().text = name + message;
     }
 
     public void setWidth(float width)
@@ -64,6 +62,6 @@ public class Window3D : MonoBehaviour
         radialView = GetComponentInChildren<RadialView>();
         if (radialView == null) Debug.LogError("Err no radial view component");
 
-        setTitleTextMessage("");
+        setTitleTextMessage("", false);
     }
 }

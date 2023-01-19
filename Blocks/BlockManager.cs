@@ -7,8 +7,12 @@ public class BlockManager : MonoBehaviour
     public static BlockManager singleton = null;
 
     private static Block _lastMaster;
-    private static Block lastMaster
+    public static Block lastMaster
     {
+        get
+        {
+            return _lastMaster;
+        }
         set
         {
             if (value == null) return;
@@ -17,10 +21,6 @@ public class BlockManager : MonoBehaviour
             _lastMaster.drawBlock();
             WindowManager.moveEditToolWindows();
         }
-    }
-    public static Block getLastMaster()
-    {
-        return _lastMaster;
     }
     public static Window3D getLastWindow()
     {

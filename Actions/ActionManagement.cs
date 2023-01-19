@@ -100,7 +100,7 @@ namespace ActionManagement
             // set message on toolsWindow
             Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsWindow>();
             if (toolsWindow != null)
-                toolsWindow.setTitleTextMessage(toolsWindowMessage);
+                toolsWindow.setTitleTextMessage(toolsWindowMessage, toolsWindowMessage != "");
         }
         public static bool callCurrentMode(object data)
         {
@@ -219,6 +219,7 @@ namespace ActionManagement
             char modeSymbol = ActionManager.getCurrentModeSymbol();
 
             Block clicked = (Block)data;
+            Block master = clicked.getMasterBlock();
             BlockManager.BlockVariant variant = clicked.getBlockVariant();
             string type = variant.getBlockType();
 
@@ -226,44 +227,44 @@ namespace ActionManagement
 
             bool codeModified = true;
             // check for special types first
+
+            // cycleable blocks go to next state
             if (BlockManager.isCycleable(type))
             {
                 int nVIndex = BlockManager.cycleBlockVariantIndex(variant);
                 BlockManager.spawnBlock(nVIndex, clicked, false);
 
-                Block master = clicked.getMasterBlock();
-                if (master != null) master.drawBlock();
+                master.drawBlock();
             }
+            // lines are inserted
             else if (type == BlockManager.INSERT_LINE)
             {
-                // this must be insert line mode, so call insert line
                 ActionManager.callCurrentMode(data);
             }
+            // methods or fields are placed
             else if (type == BlockManager.PLACE_FIELD || type == BlockManager.PLACE_METHOD)
             {
+                BlockManager.lastMaster = master;
                 ActionManager.callAction(ActionManager.NAME_FIELD_OR_METHOD, clicked);
+                codeModified = false; // change is in next action
             }
 
 
+            // delete the clicked block
             else if (modeSymbol == ActionManager.DELETE_SELECT)
             {
-                // will delete or place
                 ActionManager.callCurrentMode(data);
             }
-
-
-            // check for lower-priority special types
+            // select this block for placing
             else if (type == BlockManager.NAME)
             {
                 int variantIndex = BlockManager.getBlockVariantIndex(variant);
                 ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);
                 codeModified = false; // just copying, no changes
             }
-
-
+            // try and place a block here
             else if (modeSymbol == ActionManager.PLACE_SELECT)
             {
-                // will delete or place
                 ActionManager.callCurrentMode(data);
             }
             else codeModified = false; // if dropped out, no changes
@@ -271,7 +272,7 @@ namespace ActionManagement
 
 
             if (codeModified)
-                ;//    ((EditWindow)WindowManager.getWindowWithComponent<EditWindow>()).setTitleTextMessage("*");
+                BlockManager.getLastWindow().setTitleTextMessage("*", false);
         }
     }
 
@@ -300,14 +301,14 @@ namespace ActionManagement
             int variantIndex = (int)data;
             blockToPlace = variantIndex;
 
-            Block lastMaster = BlockManager.getLastMaster();
+            Block lastMaster = BlockManager.lastMaster;
             lastMaster.setColliderEnabled(false);
             lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
         }
 
         public override void onDeselect()
         {
-            BlockManager.getLastMaster().setColliderEnabled(true);
+            BlockManager.lastMaster.setColliderEnabled(true);
         }
 
         public override string getToolsWindowMessage()
@@ -359,13 +360,13 @@ namespace ActionManagement
 
 
             // hide all blocks that can't be deleted
-            Block lastMaster = BlockManager.getLastMaster();
+            Block lastMaster = BlockManager.lastMaster;
             lastMaster.setColliderEnabled(false, new List<string>() { BlockManager.EMPTY, BlockManager.CONSTRUCT, BlockManager.ACCESS_MODIFIER, BlockManager.TRUE_FALSE });
         }
 
         public override void onDeselect()
         {
-            BlockManager.getLastMaster().setColliderEnabled(true);
+            BlockManager.lastMaster.setColliderEnabled(true);
         }
 
         public override string getToolsWindowMessage()
@@ -393,14 +394,14 @@ namespace ActionManagement
 
         public override void onSelect(object data)
         {
-            Block lastMaster = BlockManager.getLastMaster();
+            Block lastMaster = BlockManager.lastMaster;
             lastMaster.setColliderEnabled(false);
             lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
         }
 
         public override void onDeselect()
         {
-            Block lastMaster = BlockManager.getLastMaster();
+            Block lastMaster = BlockManager.lastMaster;
             lastMaster.setColliderEnabled(true);
             lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), false);
         }
@@ -505,6 +506,8 @@ namespace ActionManagement
             Block emptyNameBlock = newBlock.getSubBlock(2);
             int nameBlockIndex = BlockManager.createNameBlock(name);
             BlockManager.spawnBlock(nameBlockIndex, emptyNameBlock);
+
+            BlockManager.getLastWindow().setTitleTextMessage("*", false);
         }
 
         public override string getTextEntryWindowMessage()
