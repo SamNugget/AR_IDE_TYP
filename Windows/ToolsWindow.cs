@@ -11,7 +11,7 @@ public class ToolsWindow : Window3D
 
     void Start()
     {
-        placeButton.setAction(ActionManager.PLACE_SELECT);
+        placeButton.setAction(ActionManager.INSERT_LINE);
         deleteButton.setAction(ActionManager.DELETE_SELECT);
         saveButton.setAction(ActionManager.SAVE_CODE);
     }

@@ -51,7 +51,7 @@ public class Block : MonoBehaviour
 
 
 
-        if (blockVariant == 0 || BlockManager.isCycleable(blockType) || blockType == BlockManager.PLACE_FIELD || blockType == BlockManager.PLACE_METHOD)
+        if (blockType == BlockManager.INSERT_LINE)
             GetComponentInChildren<Collider>().enabled = true;
 
         // TODO: none of this. the highlight should move and scale itself
@@ -95,20 +95,23 @@ public class Block : MonoBehaviour
         }
     }
 
-    public void setColliderEnabled(bool enabled, List<string> toSet = null, bool invert = false)
+    public void setColliderEnabled(bool enabled, List<string> mask = null, bool invert = false)
     {
         foreach (Block subBlock in subBlocks)
-            subBlock.setColliderEnabled(enabled, toSet);
+            subBlock.setColliderEnabled(enabled, mask, invert);
 
-        if (toSet == null)
+        if (mask == null)
         {
             GetComponentInChildren<Collider>().enabled = enabled;
             return;
         }
 
-        bool contains = toSet.Contains(blockVariant.getBlockType());
+        bool contains = mask.Contains(blockVariant.getBlockType());
+        Collider collider = GetComponentInChildren<Collider>();
         if (invert ? !contains : contains)
-            GetComponentInChildren<Collider>().enabled = enabled;
+            collider.enabled = enabled;
+        else
+            collider.enabled = !enabled;
     }
 
     public void setSpecialChildBlock(int variantIndex, bool enabled)
@@ -116,33 +119,66 @@ public class Block : MonoBehaviour
         foreach (Block subBlock in subBlocks)
             subBlock.setSpecialChildBlock(variantIndex, enabled);
 
-        Vector3 localPos = Vector3.zero;
+        Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z);
         if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
         {
             if (blockVariant.getSplittable() == false) return;
             localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
         }
-        
 
+
+        Block special = findSpecialBlock(variantIndex);
         if (enabled)
         {
             // spawn special block
-            Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
-            subBlock.localPosition = localPos;
-            Block subBlockScript = subBlock.GetComponent<Block>();
-            subBlockScript.initialise(variantIndex);
-            subBlockScript.drawBlock();
+            if (special == null)
+            {
+                GameObject subBlock = Instantiate(BlockManager.blockFab, transform);
+                special = subBlock.GetComponent<Block>();
+                special.initialise(variantIndex);
+                special.drawBlock();
+            }
+            special.transform.localPosition = localPos;
         }
         else
         {
-            // remove special block
-            for (int i = transform.childCount - 1; i >= 0; i--)
+            // destrot special block
+            if (special != null)
+                Destroy(special.gameObject);
+        }
+    }
+
+    public bool enableLeafBlocks() // returns hasSubBlocks
+    {
+        bool isLeaf = false;
+        bool hasSubBlocks = (subBlocks.Count != 0);
+
+        if (hasSubBlocks)
+        {
+            isLeaf = true; // possible leaf
+            foreach (Block subBlock in subBlocks)
+                if (subBlock.enableLeafBlocks() == true)
+                    isLeaf = false; // one child with a child of its own makes this not a leaf
+        }
+
+        GetComponentInChildren<Collider>().enabled = isLeaf;
+
+        return hasSubBlocks;
+    }
+
+    private Block findSpecialBlock(int variantToFind)
+    {
+        foreach (Transform child in transform)
+        {
+            Block block = child.GetComponent<Block>();
+            if (block != null)
             {
-                Block b = transform.GetChild(i).GetComponent<Block>();
-                if (b != null && BlockManager.getBlockVariantIndex(b.getBlockVariant()) == variantIndex)
-                    Destroy(b.gameObject);
+                int blockVariant = BlockManager.getBlockVariantIndex(block.getBlockVariant());
+                if (blockVariant == variantToFind)
+                    return block;
             }
         }
+        return null;
     }
 
     // fills text box with text, updates width and height, and moves subblocks

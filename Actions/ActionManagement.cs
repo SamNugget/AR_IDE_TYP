@@ -28,8 +28,16 @@ namespace ActionManagement
 
 
 
-        //public static List<string> BlocksEnabledForPlacing = new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
-        //public static List<string> BlocksDisabledDefault = new List<string>() { BlockManager.EMPTY });
+        public static List<string> blocksEnabledDefault = new List<string>() { BlockManager.NAME, BlockManager.PLACE_FIELD, BlockManager.PLACE_METHOD }; // +all cyclable
+        public static List<string> blocksEnabledForPlacing
+        {
+            get
+            {
+                List<string> placing = new List<string>(blocksEnabledDefault);
+                placing.Add(BlockManager.EMPTY);
+                return placing;
+            }
+        }
 
 
 
@@ -232,7 +240,8 @@ namespace ActionManagement
             if (BlockManager.isCycleable(type))
             {
                 int nVIndex = BlockManager.cycleBlockVariantIndex(variant);
-                BlockManager.spawnBlock(nVIndex, clicked, false);
+                Block spawned = BlockManager.spawnBlock(nVIndex, clicked, false);
+                spawned.setColliderEnabled(true);
 
                 master.drawBlock();
             }
@@ -285,11 +294,11 @@ namespace ActionManagement
 
         public override void onCall(object data)
         {
-            Block lastMaster = ((Block)data).getMasterBlock();
-            lastMaster.setColliderEnabled(false);
-            lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
+            Block parent = ((Block)data).getParent();
 
             BlockManager.spawnBlock(blockToPlace, (Block)data);
+
+            parent.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
         }
 
         public override void onSelect(object data)
@@ -301,14 +310,12 @@ namespace ActionManagement
             int variantIndex = (int)data;
             blockToPlace = variantIndex;
 
-            Block lastMaster = BlockManager.lastMaster;
-            lastMaster.setColliderEnabled(false);
-            lastMaster.setColliderEnabled(true, new List<string>() { BlockManager.EMPTY, BlockManager.NAME });
+            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
         }
 
         public override void onDeselect()
         {
-            BlockManager.lastMaster.setColliderEnabled(true);
+            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
         }
 
         public override string getToolsWindowMessage()
@@ -325,21 +332,21 @@ namespace ActionManagement
         public override void onCall(object data)
         {
             Block toReplace = (Block)data;
-            Block parent = toReplace.getParent();
-            if (parent == null)
+            Block master = toReplace.getMasterBlock();
+            if (toReplace == master)
             {
-                Debug.Log("Can't delete the master block."); return;
+                Debug.Log("Hello, ActionManagement here, I'm afraid you cannot delete the master block."); return;
             }
 
-            // TODO: will deleting this affect variable declaration?
-
-            /*string actualType = ((Block)data).getBlockVariant().getBlockType();
-            if (actualType.Equals(BlockManager.EMPTY) || actualType.Equals(BlockManager.ACCESS_MODIFIER))
+            /*//TODO: will deleting this affect fields or methods
+            string type = ((Block)data).getBlockVariant().getBlockType();
+            if (type == BlockManager.FIELD || type == BlockManager.METHOD)
             {
                 Debug.Log("Can't delete blocks of this type.");
                 return;
-            }*/
+            }
 
+            //TODO: the effect of deleting variables
             string[] subBlockTypes = parent.getBlockVariant().getSubBlockTypes();
             int subBlockIndex = parent.getSubBlockIndex(toReplace);
             string supposedType = subBlockTypes[subBlockIndex]; // not the actual type, but what should be here
@@ -347,10 +354,11 @@ namespace ActionManagement
             {
                 Debug.Log("Can't delete a name.");
                 return;
-            }
+            }*/
 
             BlockManager.spawnBlock(0, toReplace, false);
-            onSelect(null);
+
+            master.enableLeafBlocks();
         }
 
         public override void onSelect(object data)
@@ -361,12 +369,12 @@ namespace ActionManagement
 
             // hide all blocks that can't be deleted
             Block lastMaster = BlockManager.lastMaster;
-            lastMaster.setColliderEnabled(false, new List<string>() { BlockManager.EMPTY, BlockManager.CONSTRUCT, BlockManager.ACCESS_MODIFIER, BlockManager.TRUE_FALSE });
+            lastMaster.enableLeafBlocks(); // TEMP: need special leaf node thing
         }
 
         public override void onDeselect()
         {
-            BlockManager.lastMaster.setColliderEnabled(true);
+            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
         }
 
         public override string getToolsWindowMessage()
@@ -386,24 +394,25 @@ namespace ActionManagement
             Block parent = ((Block)data).getParent();
             BlockManager.splitBlock(parent);
 
-            Block lastMaster = parent.getMasterBlock();
-            lastMaster.setColliderEnabled(false);
-            lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), false);
-            lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
+            insertLineBlocksEnabled(true);
         }
 
         public override void onSelect(object data)
         {
-            Block lastMaster = BlockManager.lastMaster;
-            lastMaster.setColliderEnabled(false);
-            lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
+            insertLineBlocksEnabled(true);
         }
 
         public override void onDeselect()
         {
+            insertLineBlocksEnabled(false);
+        }
+
+        private void insertLineBlocksEnabled(bool enabled)
+        {
             Block lastMaster = BlockManager.lastMaster;
-            lastMaster.setColliderEnabled(true);
-            lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), false);
+            if (enabled) lastMaster.setColliderEnabled(false);
+            else         lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
+            lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), enabled);
         }
 
         public override string getToolsWindowMessage()
@@ -508,6 +517,10 @@ namespace ActionManagement
             BlockManager.spawnBlock(nameBlockIndex, emptyNameBlock);
 
             BlockManager.getLastWindow().setTitleTextMessage("*", false);
+
+
+
+            splitter.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
         }
 
         public override string getTextEntryWindowMessage()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using ActionManagement;
 
 public class BlockManager : MonoBehaviour
 {
@@ -60,7 +61,6 @@ public class BlockManager : MonoBehaviour
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
     public readonly static string TRUE_FALSE = "TF";
 
-    // TODO: namespaces, properties, delegates, and events
 
     private static readonly string[] cycleable = {
         CONSTRUCT, ACCESS_MODIFIER, TRUE_FALSE
@@ -420,8 +420,9 @@ public class BlockManager : MonoBehaviour
         blockFab = blockPrefab;
 
         foreach (BlockVariant bT in blockVariants)
-        {
             bT.calculateInstanceVariables();
-        }
+
+        foreach (string type in cycleable)
+            ActionManager.blocksEnabledDefault.Add(type);
     }
 }

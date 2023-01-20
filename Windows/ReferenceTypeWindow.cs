@@ -2,9 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using FileManagement;
+using ActionManagement;
 
 public class ReferenceTypeWindow : Window3D
 {
+    private Block masterBlock;
+
     private ReferenceTypeS _referenceTypeSave;
     public ReferenceTypeS referenceTypeSave
     {
@@ -20,9 +23,9 @@ public class ReferenceTypeWindow : Window3D
 
                 BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Place Field"), masterBlock.getSubBlock(0));
                 BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Place Method"), masterBlock.getSubBlock(1));
+
+                masterBlock.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
             }
         }
     }
-
-    private Block masterBlock;
 }
