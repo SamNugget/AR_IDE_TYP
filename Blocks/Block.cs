@@ -51,11 +51,11 @@ public class Block : MonoBehaviour
 
 
 
+        // set collider enabled if special type
         if (blockType == BlockManager.INSERT_LINE)
             GetComponentInChildren<Collider>().enabled = true;
-
-        // TODO: none of this. the highlight should move and scale itself
-        transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = this.blockVariant.getColor();
+        // set colour
+        transform.GetComponentInChildren<MeshRenderer>().material.color = this.blockVariant.getColor();
 
 
 
@@ -69,6 +69,7 @@ public class Block : MonoBehaviour
 
             subBlocks.Add(subBlockScript);
 
+            // if name required to place block, call naming action
             if (subBlockTypes[i] == BlockManager.NEW_NAME)
                 ActionManager.callAction(ActionManager.NAME_VARIABLE, new Block[] { this, subBlockScript });
         }
@@ -119,7 +120,7 @@ public class Block : MonoBehaviour
         foreach (Block subBlock in subBlocks)
             subBlock.setSpecialChildBlock(variantIndex, enabled);
 
-        Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z);
+        Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z * 2f);
         if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
         {
             if (blockVariant.getSplittable() == false) return;

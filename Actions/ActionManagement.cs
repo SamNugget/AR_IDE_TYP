@@ -240,6 +240,7 @@ namespace ActionManagement
             if (BlockManager.isCycleable(type))
             {
                 int nVIndex = BlockManager.cycleBlockVariantIndex(variant);
+                // change block variant to next in cycle and enable colliders
                 Block spawned = BlockManager.spawnBlock(nVIndex, clicked, false);
                 spawned.setColliderEnabled(true);
 
@@ -296,8 +297,8 @@ namespace ActionManagement
         {
             Block parent = ((Block)data).getParent();
 
+            // place block and enable colliders where necessary
             BlockManager.spawnBlock(blockToPlace, (Block)data);
-
             parent.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
         }
 
@@ -310,12 +311,14 @@ namespace ActionManagement
             int variantIndex = (int)data;
             blockToPlace = variantIndex;
 
-            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
+            // enable only colliders necessary for placement
+            WindowManager.updateEditWindowColliders(true, ActionManager.blocksEnabledForPlacing);
         }
 
         public override void onDeselect()
         {
-            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
+            // return block collider states to default
+            WindowManager.updateEditWindowColliders(true, ActionManager.blocksEnabledDefault);
         }
 
         public override string getToolsWindowMessage()
@@ -357,7 +360,7 @@ namespace ActionManagement
             }*/
 
             BlockManager.spawnBlock(0, toReplace, false);
-
+            // enable only blocks that can be deleted
             master.enableLeafBlocks();
         }
 
@@ -367,14 +370,14 @@ namespace ActionManagement
 
 
 
-            // hide all blocks that can't be deleted
-            Block lastMaster = BlockManager.lastMaster;
-            lastMaster.enableLeafBlocks(); // TEMP: need special leaf node thing
+            // enable only blocks that can be deleted
+            WindowManager.enableEditWindowLeafBlocks();
         }
 
         public override void onDeselect()
         {
-            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
+            // return block collider states to default
+            WindowManager.updateEditWindowColliders(true, ActionManager.blocksEnabledDefault);
         }
 
         public override string getToolsWindowMessage()
@@ -392,9 +395,9 @@ namespace ActionManagement
             if (!(data is Block)) return;
 
             Block parent = ((Block)data).getParent();
-            BlockManager.splitBlock(parent);
+            Block splitter = BlockManager.splitBlock(parent);
 
-            insertLineBlocksEnabled(true);
+            splitter.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
         }
 
         public override void onSelect(object data)
@@ -409,10 +412,9 @@ namespace ActionManagement
 
         private void insertLineBlocksEnabled(bool enabled)
         {
-            Block lastMaster = BlockManager.lastMaster;
-            if (enabled) lastMaster.setColliderEnabled(false);
-            else         lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
-            lastMaster.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), enabled);
+            if (enabled) WindowManager.updateEditWindowColliders(false);
+            else         WindowManager.updateEditWindowColliders(true, ActionManager.blocksEnabledDefault);
+            WindowManager.updateEditWindowSpecialBlocks(BlockManager.getBlockVariantIndex("Insert Line"), enabled);
         }
 
         public override string getToolsWindowMessage()
@@ -426,7 +428,6 @@ namespace ActionManagement
     public class CreateName : Mode
     {
         private Window3D textEntryWindow;
-        
         private NameCreator nameCreator;
 
         public override void onCall(object data)
@@ -434,6 +435,7 @@ namespace ActionManagement
             nameCreator.onFinishedNaming(true, (string)data);
 
             WindowManager.destroyWindow(textEntryWindow);
+            textEntryWindow = null;
             ActionManager.clearMode();
         }
 
@@ -606,7 +608,7 @@ namespace ActionManagement
         {
             ReferenceTypeS rTS = FileManager.getSourceFile((string)data);
             Window3D spawned = WindowManager.spawnFileWindow();
-            ((ReferenceTypeWindow)spawned).referenceTypeSave = rTS;
+            ((FileWindow)spawned).referenceTypeSave = rTS;
             spawned.setName((string)data);
 
             //WindowManager.moveEditToolWindows();

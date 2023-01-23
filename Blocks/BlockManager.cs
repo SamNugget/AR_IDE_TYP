@@ -288,14 +288,14 @@ public class BlockManager : MonoBehaviour
         return newBlock;
     }
 
-    public static void splitBlock(Block toSplit, bool originalOnTop = true)
+    public static Block splitBlock(Block toSplit, bool originalOnTop = true)
     {
         // get info from toSplit
         Block parent = toSplit.getParent();
         if (parent == null)
         {
-            Debug.Log("Can't split the master block.");
-            return;
+            Debug.Log("BlockManager here, you cannot split the master block.");
+            return null;
         }
         int subBlockIndex = parent.getSubBlockIndex(toSplit);
 
@@ -314,6 +314,8 @@ public class BlockManager : MonoBehaviour
 
         // draw the blocks
         lastMaster = parent.getMasterBlock();
+
+        return splitter;
     }
 
 

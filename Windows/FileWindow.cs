@@ -4,10 +4,8 @@ using UnityEngine;
 using FileManagement;
 using ActionManagement;
 
-public class ReferenceTypeWindow : Window3D
+public class FileWindow : EditWindow
 {
-    private Block masterBlock;
-
     private ReferenceTypeS _referenceTypeSave;
     public ReferenceTypeS referenceTypeSave
     {
