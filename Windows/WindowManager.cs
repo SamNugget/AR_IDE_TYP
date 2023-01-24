@@ -173,9 +173,9 @@ public class WindowManager : MonoBehaviour
 
 
     [SerializeField] private GameObject toolsWindowFab;
-    private static WindowSettings toolsWS = new WindowSettings(new Vector3(0f, -0.2f, -0.1f));
+    private static WindowSettings toolsWS = new WindowSettings(new Vector3(0f, -0.12f, 0f));
     [SerializeField] private GameObject blockSelectWindowFab;
-    private static WindowSettings blockWS = new WindowSettings(new Vector3(0f, 0.2f, -0.1f));
+    private static WindowSettings blockWS = new WindowSettings(new Vector3(-0.15f, 0f, -0f));
     public static void moveEditToolWindows()
     {
         makeWindowChildOfWindow<ToolsWindow>(singleton.toolsWindowFab, ref toolsWS);

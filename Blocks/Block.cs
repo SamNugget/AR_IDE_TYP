@@ -43,6 +43,9 @@ public class Block : MonoBehaviour
                 int bVI = 0; // empty block by default
                 if (BlockManager.isCycleable(subBlockTypes[i]))
                     bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // special AM block
+                else if (subBlockTypes[i] == BlockManager.PLACE_VARIABLE)
+                    bVI = BlockManager.getBlockVariantIndex("Place Variable");
+
 
                 blockSave.subBlocks[i] = new BlockSave();
                 blockSave.subBlocks[i].blockVariant = bVI;
@@ -123,8 +126,11 @@ public class Block : MonoBehaviour
         Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z * 2f);
         if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
         {
-            if (blockVariant.getSplittable() == false) return;
-            localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
+            if (blockVariant.getSplittableV())
+                localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
+            if (blockVariant.getSplittableH())
+                localPos.x += ((float)width - 0.5f) * FontManager.horizontalAdvance;
+            else return;
         }
 
 

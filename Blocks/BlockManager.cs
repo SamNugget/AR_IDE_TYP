@@ -36,6 +36,7 @@ public class BlockManager : MonoBehaviour
     public readonly static string INSERT_LINE = "IL";
     public readonly static string PLACE_FIELD = "PF";
     public readonly static string PLACE_METHOD = "PM";
+    public readonly static string PLACE_VARIABLE = "PV";
 
     public readonly static string USING = "UG";
 
@@ -110,7 +111,9 @@ public class BlockManager : MonoBehaviour
 
         [SerializeField] private Color color;
 
-        [SerializeField] private bool splittable;
+        [SerializeField] private bool splittableV;
+
+        [SerializeField] private bool splittableH;
 
 
         // DEFAULT VALUES, WILL BE CHANGED IN INSTANCE OF BLOCK
@@ -147,7 +150,9 @@ public class BlockManager : MonoBehaviour
             return new Color(color.r, color.g, color.b, color.a);
         }
 
-        public bool getSplittable() { return splittable; }
+        public bool getSplittableV() { return splittableV; }
+
+        public bool getSplittableH() { return splittableH; }
 
         // DEFAULT VALUES GET METHODS
         public string[] getLines()
@@ -179,12 +184,13 @@ public class BlockManager : MonoBehaviour
 
 
 
-        public BlockVariant(string name, string blockType, Color color, bool splittable, string[] lines)
+        public BlockVariant(string name, string blockType, Color color, bool splittableV, bool splittableH, string[] lines)
         {
             this.name = name;
             this.blockType = blockType;
             this.color = color;
-            this.splittable = splittable;
+            this.splittableV = splittableV;
+            this.splittableH = splittableH;
             this.lines = lines;
 
             calculateInstanceVariables();
@@ -232,6 +238,7 @@ public class BlockManager : MonoBehaviour
     {
         foreach (BlockVariant bV in singleton.blockVariants)
             if (bV.getName().Equals(name)) return bV;
+        Debug.Log("Err, block variant " + name + " does not exist.");
         return null;
     }
     public static int getBlockVariantIndex(string name)
@@ -299,10 +306,29 @@ public class BlockManager : MonoBehaviour
         }
         int subBlockIndex = parent.getSubBlockIndex(toSplit);
 
+
+        // find out whether this is a vertical or horizontal split
+        int splitterVariantIndex;
+        BlockVariant toSplitVariant = toSplit.getBlockVariant();
+        if (toSplitVariant.getSplittableV())
+        {
+            splitterVariantIndex = getBlockVariantIndex("SplitterV");
+        }
+        else if (toSplitVariant.getSplittableH())
+        {
+            splitterVariantIndex = getBlockVariantIndex("SplitterH");
+        }
+        else
+        {
+            Debug.Log("BlockManager here, err, you're trying to split a block not splittable.");
+            return null;
+        }
+
+
         // make splitter
         Block splitter = Instantiate(blockFab, parent.transform).GetComponent<Block>();
         splitter.transform.position = toSplit.transform.position;
-        splitter.initialise(getBlockVariantIndex("Splitter"));
+        splitter.initialise(splitterVariantIndex);
 
         // reconfigure parent
         parent.replaceSubBlock(splitter, subBlockIndex, false);
@@ -366,7 +392,8 @@ public class BlockManager : MonoBehaviour
         for (int i = 0; highestSplitter != null; i++)
         {
             Block newParent = highestSplitter.getParent();
-            if (newParent.getBlockVariant() != getBlockVariant("Splitter")) return highestSplitter;
+            if (newParent.getBlockVariant().getBlockType() != SPLITTER)
+                return highestSplitter;
 
             highestSplitter = newParent;
         }
@@ -380,7 +407,7 @@ public class BlockManager : MonoBehaviour
     public static int createNameBlock(string name)
     {
         string[] lines = new string[] { name };
-        BlockVariant newVariable = new BlockVariant(name, NAME, singleton.variableColor, false, lines);
+        BlockVariant newVariable = new BlockVariant(name, NAME, singleton.variableColor, false, false, lines);
         singleton.blockVariants.Add(newVariable);
 
         return singleton.blockVariants.Count - 1;

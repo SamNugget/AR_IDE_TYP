@@ -28,7 +28,7 @@ namespace ActionManagement
 
 
 
-        public static List<string> blocksEnabledDefault = new List<string>() { BlockManager.NAME, BlockManager.PLACE_FIELD, BlockManager.PLACE_METHOD }; // +all cyclable
+        public static List<string> blocksEnabledDefault = new List<string>() { BlockManager.NAME, BlockManager.PLACE_FIELD, BlockManager.PLACE_METHOD, BlockManager.PLACE_VARIABLE }; // +all cyclable
         public static List<string> blocksEnabledForPlacing
         {
             get
@@ -252,7 +252,7 @@ namespace ActionManagement
                 ActionManager.callCurrentMode(data);
             }
             // methods or fields are placed
-            else if (type == BlockManager.PLACE_FIELD || type == BlockManager.PLACE_METHOD)
+            else if (type == BlockManager.PLACE_FIELD || type == BlockManager.PLACE_METHOD || type == BlockManager.PLACE_VARIABLE)
             {
                 BlockManager.lastMaster = master;
                 ActionManager.callAction(ActionManager.NAME_FIELD_OR_METHOD, clicked);
@@ -433,6 +433,7 @@ namespace ActionManagement
         public override void onCall(object data)
         {
             nameCreator.onFinishedNaming(true, (string)data);
+            BlockManager.getLastWindow().setTitleTextMessage("*", false);
 
             WindowManager.destroyWindow(textEntryWindow);
             textEntryWindow = null;
@@ -484,12 +485,12 @@ namespace ActionManagement
         // BlockClicked ==> NameFieldOrMethod ==> CreateName ==> NameFieldOrMethod
 
         private Block clicked;
-        private bool field;
+        private string blockType;
 
         public void onCall(object data)
         {
             clicked = (Block)data;
-            field = clicked.getBlockVariant().getBlockType() == BlockManager.PLACE_FIELD;
+            blockType = clicked.getBlockVariant().getBlockType();
 
             ActionManager.callAction(ActionManager.CREATE_NAME, this);
         }
@@ -498,37 +499,56 @@ namespace ActionManagement
         {
             if (!success) return;
 
-            // split clicked, and put it on the bottom
-            BlockManager.splitBlock(clicked, false);
 
-            Block splitter = clicked.getParent();
+            Block splitter = null;
+            Block newBlock;
+            int emptyNameBlockIndex;
+            if (blockType == BlockManager.PLACE_VARIABLE)
+            {
+                // spawn a variable block (splittable with insert line)
+                newBlock = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Variable"), clicked, false);
+                emptyNameBlockIndex = 1;
+            }
+            else
+            {
+                // split [ + ] button, and put it on the bottom of splitter
+                splitter = BlockManager.splitBlock(clicked, false);
 
-            // get object reference to top (empty) block
-            int clickedIndex = splitter.getSubBlockIndex(clicked);
-            Block toReplace = splitter.getSubBlock(clickedIndex == 0 ? 1 : 0);
+                // get variant index of to place
+                string blockName;
+                if (blockType == BlockManager.PLACE_FIELD) blockName = "Field";
+                else if (blockType == BlockManager.PLACE_METHOD) blockName = "Method";
+                else
+                {
+                    Debug.Log("Hello, ActionManagement here, err, trying to name something not nameable."); return;
+                    return;
+                }
+                int variantIndex = BlockManager.getBlockVariantIndex(blockName);
 
-            // get variant index of to place
-            int variantIndex = BlockManager.getBlockVariantIndex(field ? "Field" : "Method");
+                // get object reference to top (empty) block in splitter
+                Block toReplace = splitter.getSubBlock(0);
 
-            // replace top block
-            Block newBlock = BlockManager.spawnBlock(variantIndex, toReplace);
+                // replace top block
+                newBlock = BlockManager.spawnBlock(variantIndex, toReplace);
+                emptyNameBlockIndex = 2;
+            }
+
 
             // replace name block
-            Block emptyNameBlock = newBlock.getSubBlock(2);
-            int nameBlockIndex = BlockManager.createNameBlock(name);
-            BlockManager.spawnBlock(nameBlockIndex, emptyNameBlock);
-
-            BlockManager.getLastWindow().setTitleTextMessage("*", false);
+            Block emptyNameBlock = newBlock.getSubBlock(emptyNameBlockIndex);
+            int nameBlockVariantIndex = BlockManager.createNameBlock(name);
+            BlockManager.spawnBlock(nameBlockVariantIndex, emptyNameBlock);
 
 
-
-            splitter.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
+            BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
         }
 
         public override string getTextEntryWindowMessage()
         {
-            if (field) return "Name Field:";
-            else return "Name Method:";
+            if (blockType == BlockManager.PLACE_FIELD) return "Name Field:";
+            if (blockType == BlockManager.PLACE_METHOD) return "Name Method:";
+            if (blockType == BlockManager.PLACE_VARIABLE) return "Name Variable:";
+            else return "ERR NAMING";
         }
     }
 
