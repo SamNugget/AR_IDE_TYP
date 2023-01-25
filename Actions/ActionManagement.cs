@@ -500,37 +500,27 @@ namespace ActionManagement
             if (!success) return;
 
 
-            Block splitter = null;
-            Block newBlock;
-            int emptyNameBlockIndex;
+            int emptyNameBlockIndex = 2;
             if (blockType == BlockManager.PLACE_VARIABLE)
             {
                 // spawn a variable block (splittable with insert line)
-                newBlock = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Variable"), clicked, false);
+                BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Variable"), clicked, false);
                 emptyNameBlockIndex = 1;
+            }
+            else if (blockType == BlockManager.PLACE_FIELD)
+            {
+                Block b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Field"), clicked, false);
+                ((FileWindow)BlockManager.getLastWindow()).addField(b);
+            }
+            else if (blockType == BlockManager.PLACE_METHOD)
+            {
+                Block b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
+                ((FileWindow)BlockManager.getLastWindow()).addMethod(b);
             }
             else
             {
-                // split [ + ] button, and put it on the bottom of splitter
-                splitter = BlockManager.splitBlock(clicked, false);
-
-                // get variant index of to place
-                string blockName;
-                if (blockType == BlockManager.PLACE_FIELD) blockName = "Field";
-                else if (blockType == BlockManager.PLACE_METHOD) blockName = "Method";
-                else
-                {
-                    Debug.Log("Hello, ActionManagement here, err, trying to name something not nameable."); return;
-                    return;
-                }
-                int variantIndex = BlockManager.getBlockVariantIndex(blockName);
-
-                // get object reference to top (empty) block in splitter
-                Block toReplace = splitter.getSubBlock(0);
-
-                // replace top block
-                newBlock = BlockManager.spawnBlock(variantIndex, toReplace);
-                emptyNameBlockIndex = 2;
+                Debug.Log("Hello, ActionManagement here, err, trying to name something not nameable."); return;
+                return;
             }
 
 
@@ -598,13 +588,7 @@ namespace ActionManagement
     {
         public void onCall(object data)
         {
-            //Window3D editWindow = BlockManager.getLastEditWindow();
-
-            Window3D toolsWindow = (ToolsWindow)WindowManager.getWindowWithComponent<ToolsWindow>();
-
-            if (FileManager.saveAllFiles())
-                toolsWindow.setTitleTextMessage("Saved");
-            else toolsWindow.setTitleTextMessage("Err saving");
+            string fileName = ((FileWindow)BlockManager.getLastWindow()).saveFile();
         }
     }
 

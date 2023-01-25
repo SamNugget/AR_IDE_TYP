@@ -1,44 +1,33 @@
-using System;
-using System.Collections.Generic;
-
-[Serializable]
-public class MethodS : IConvertToCode
+[System.Serializable]
+public class MethodS
 {
-    public string accessModifier;
-    public string returnType;
-    public string name;
-    public VariableS[] parameters;
+    public Block methodDeclaration;
+    public Block methodBodyMaster;
 
-    public MethodS(string name)
+    public MethodS(Block methodDeclaration, Block methodBodyMaster)
     {
-        accessModifier = "public";
-        returnType = "void";
-        this.name = name;
-        parameters = new VariableS[0];
+        this.methodDeclaration = methodDeclaration;
+        this.methodBodyMaster = methodBodyMaster;
     }
 
-    public void addParameter(VariableS toAdd)
+    public string getCode(bool body)
     {
-        parameters = ReferenceTypeS.appendToArray<VariableS>(parameters, toAdd);
-    }
+        if (methodDeclaration == null)
+            return null;
 
-    public void removeParameter(VariableS toRemove)
-    {
-        int i = Array.IndexOf(parameters, toRemove);
-        parameters = ReferenceTypeS.removeFromArray<VariableS>(parameters, i);
-    }
+        string result = methodDeclaration.getBlockText(true);
 
-    public virtual string getCode()
-    {
-        string code = accessModifier + " " + returnType + " " + name + "(";
-        foreach (IConvertToCode v in parameters)
-            code += v.getCode() + ", ";
+        if (body)
+        {
+            if (methodBodyMaster == null)
+                return null;
+            result += "\n{\n" + methodBodyMaster.getBlockText(true) + "\n}\n";
+        }
+        else
+        {
+            result += ';';
+        }
 
-        if (parameters.Length > 0) // if there's ", " on the end, remove it
-            code = code.Substring(0, code.Length - 2);
-        
-        code += ");";
-
-        return code;
+        return result;
     }
 }

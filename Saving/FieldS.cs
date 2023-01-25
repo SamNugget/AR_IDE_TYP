@@ -1,10 +1,18 @@
 [System.Serializable]
-public class FieldS : VariableS
+public class FieldS
 {
-    public string accessModifier;
+    public Block fieldBlock;
 
-    public override string getCode()
+    public FieldS(Block fieldBlock)
     {
-        return accessModifier + " " + base.getCode() + ";";
+        this.fieldBlock = fieldBlock;
+    }
+
+    public string getCode()
+    {
+        if (fieldBlock == null)
+            return null;
+
+        return fieldBlock.getBlockText(true);
     }
 }

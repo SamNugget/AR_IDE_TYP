@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 
-public class ReferenceTypeS : IConvertToCode
+[System.Serializable]
+public class ReferenceTypeS
 {
     // class, interface, delegate or record
     // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types
@@ -14,97 +14,93 @@ public class ReferenceTypeS : IConvertToCode
 
     public string name;
     public bool isClass;
-    public string[] implemented;
-    public FieldS[] fields;
-    public MethodS[] methods;
+
+    public List<FieldS> fields;
+    public List<MethodS> methods;
 
     public ReferenceTypeS(string path, string name)
     {
         this.path = path;
         this.name = name;
+
         isClass = true;
-        implemented = new string[0];
-        fields = new FieldS[0];
-        methods = new MethodS[0];
+        fields = new List<FieldS>();
+        methods = new List<MethodS>();
     }
 
-    public static T[] appendToArray<T>(T[] arr, T toAdd)
+    public void addField(Block fieldBlock)
     {
-        Array.Resize<T>(ref arr, arr.Length + 1);
-        arr[arr.Length - 1] = toAdd;
-        return arr;
+        fields.Add(new FieldS(fieldBlock));
     }
 
-    public static T[] removeFromArray<T>(T[] arr, int i)
+    public void removeField(Block fieldBlock)
     {
-        for (; i < arr.Length - 1; i++) arr[i] = arr[i + 1]; // shift left
-        Array.Resize<T>(ref arr, arr.Length - 1);
-        return arr;
+        foreach (FieldS f in fields)
+        {
+            if (f.fieldBlock == fieldBlock)
+            {
+                fields.Remove(f);
+                return;
+            }
+        }
     }
 
-    public void addImplemented(string toAdd)
+    public void addMethod(Block methodDeclaration, Block methodBodyMaster)
     {
-        implemented = appendToArray<string>(implemented, toAdd);
+        methods.Add(new MethodS(methodDeclaration, methodBodyMaster));
     }
 
-    public void removeImplemented(string toRemove)
+    public void removeMethod(Block methodDeclaration)
     {
-        int i = Array.FindIndex<string>(implemented, x => x == toRemove);
-        implemented = removeFromArray<string>(implemented, i);
-    }
-
-    public void addField(FieldS toAdd)
-    {
-        fields = appendToArray<FieldS>(fields, toAdd);
-    }
-
-    public void removeField(FieldS toRemove)
-    {
-        int i = Array.IndexOf(fields, toRemove);
-        fields = removeFromArray<FieldS>(fields, i);
-    }
-
-    public void addMethod(MethodS toAdd)
-    {
-        methods = appendToArray<MethodS>(methods, toAdd);
-    }
-
-    public void removeMethod(MethodS toRemove)
-    {
-        int i = Array.IndexOf(methods, toRemove);
-        methods = removeFromArray<MethodS>(methods, i);
+        foreach (MethodS m in methods)
+        {
+            if (m.methodDeclaration == methodDeclaration)
+            {
+                methods.Remove(m);
+                return;
+            }
+        }
     }
 
     public string getCode()
     {
         // first line
         string code = "public " + (isClass ? "class " : "interface ") + name;
-        if (implemented.Length > 0)
+        /*if (implemented.Length > 0)
         {
             code += " : ";
             foreach (string i in implemented)
                 code += i + ", ";
             code = code.Substring(0, code.Length - 2);
-        }
-        code += "\n{\n";
+        } TODO: linking classes/interfaces by drag and drop*/
+        code += "\n{\n\n";
 
-        // fields (only if class)
         if (isClass)
         {
-            foreach (IConvertToCode f in fields)
+            // fields
+            foreach (FieldS f in fields)
                 code += f.getCode() + '\n';
+            code += '\n';
+
+            // methods
+            foreach (MethodS m in methods)
+                code += m.getCode(false) + "\n\n";
+        }
+        else // interface
+        {
+            // methods only
+            foreach (MethodS m in methods)
+                code += m.getCode(false) + '\n';
             code += '\n';
         }
 
-        // methods
-        foreach (IConvertToCode m in methods)
-            code += m.getCode() + "\n\n";
-
+        code += '}';
         return code;
     }
 
-    public void cycleReferenceType()
+    public bool cycleReferenceType()
     {
         isClass = !isClass;
+        return isClass;
     }
 }
