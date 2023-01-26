@@ -187,7 +187,15 @@ public class WindowManager : MonoBehaviour
     private static WindowSettings textEntryWS = new WindowSettings();
     public static Window3D spawnTextInputWindow()
     {
-        return makeWindowChildOfWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS);
+        Window3D w = makeWindowChildOfWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS);
+        if (w != null) return w;
+
+        Window3D parent = getWindowWithComponent<FilesWindow>();
+        if (parent == null)
+            parent = getWindowWithComponent<WorkspacesButtonManager>();
+        if (parent == null) return null;
+
+        return makeWindowChildOfWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
     }
 
 
@@ -245,18 +253,21 @@ public class WindowManager : MonoBehaviour
     }
 
     // finds the sole window with component T and changes the parent
-    private static Window3D makeWindowChildOfWindow<T>(GameObject windowFab, ref WindowSettings settings)
+    private static Window3D makeWindowChildOfWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent = null)
     {
         // get the last window being edited
-        Window3D lastEdited = BlockManager.getLastWindow();
-        if (lastEdited == null) return null;
+        if (parent == null)
+        {
+            parent = BlockManager.getLastWindow();
+            if (parent == null) return null;
+        }
+
 
         // find the window
         Window3D window = getWindowWithComponent<T>();
 
 
-
-        Transform lET = lastEdited.transform.GetChild(0);
+        Transform lET = parent.transform.GetChild(0);
         // if it doesn't exist, spawn
         if (window == null)
             window = spawnWindow(windowFab, settings, lET);

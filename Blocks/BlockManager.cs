@@ -25,6 +25,7 @@ public class BlockManager : MonoBehaviour
     }
     public static Window3D getLastWindow()
     {
+        if (_lastMaster == null) return null;
         return _lastMaster.GetComponentInParent<Window3D>();
     }
 

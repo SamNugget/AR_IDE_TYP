@@ -13,6 +13,6 @@ public class FilesButtonManager : ButtonManager3D
         foreach (string file in files)
             spawnButton(file, ActionManager.OPEN_FILE, file, "IconClass");
 
-        spawnButton("CREATE NEW", '\0', null, "IconAdd");
+        spawnButton("CREATE NEW", ActionManager.CREATE_FILE, null, "IconAdd");
     }
 }

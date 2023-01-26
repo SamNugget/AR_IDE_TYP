@@ -23,6 +23,7 @@ namespace ActionManagement
         // WINDOW STUFF
         public readonly static char OPEN_WORKSPACE = 'W';
         public readonly static char OPEN_FILE = 'F';
+        public readonly static char CREATE_FILE = 'R';
         public readonly static char BACK_TO_WORKSPACES = 'B';
         public readonly static char CYCLE_CONSTRUCT = 'Y';
 
@@ -157,6 +158,7 @@ namespace ActionManagement
 
             actions.Add(OPEN_WORKSPACE, new OpenWorkspace());
             actions.Add(OPEN_FILE, new OpenFile());
+            actions.Add(CREATE_FILE, new CreateFile());
             actions.Add(BACK_TO_WORKSPACES, new BackToWorkspaces());
         }
 
@@ -501,21 +503,22 @@ namespace ActionManagement
 
 
             int emptyNameBlockIndex = 2;
+            Block b;
             if (blockType == BlockManager.PLACE_VARIABLE)
             {
                 // spawn a variable block (splittable with insert line)
-                BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Variable"), clicked, false);
+                b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Variable"), clicked, false);
                 emptyNameBlockIndex = 1;
             }
             else if (blockType == BlockManager.PLACE_FIELD)
             {
-                Block b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Field"), clicked, false);
-                ((FileWindow)BlockManager.getLastWindow()).addField(b);
+                b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Field"), clicked, false);
+                ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addField(b);
             }
             else if (blockType == BlockManager.PLACE_METHOD)
             {
-                Block b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
-                ((FileWindow)BlockManager.getLastWindow()).addMethod(b);
+                b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
+                ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addMethod(b, null);
             }
             else
             {
@@ -525,7 +528,7 @@ namespace ActionManagement
 
 
             // replace name block
-            Block emptyNameBlock = newBlock.getSubBlock(emptyNameBlockIndex);
+            Block emptyNameBlock = b.getSubBlock(emptyNameBlockIndex);
             int nameBlockVariantIndex = BlockManager.createNameBlock(name);
             BlockManager.spawnBlock(nameBlockVariantIndex, emptyNameBlock);
 
@@ -588,7 +591,7 @@ namespace ActionManagement
     {
         public void onCall(object data)
         {
-            string fileName = ((FileWindow)BlockManager.getLastWindow()).saveFile();
+            ((FileWindow)BlockManager.getLastWindow()).saveFile();
         }
     }
 
@@ -613,11 +616,36 @@ namespace ActionManagement
             ReferenceTypeS rTS = FileManager.getSourceFile((string)data);
             Window3D spawned = WindowManager.spawnFileWindow();
             ((FileWindow)spawned).referenceTypeSave = rTS;
-            spawned.setName((string)data);
-
-            //WindowManager.moveEditToolWindows();
 
             // TODO: remove from list in files window
+        }
+    }
+
+
+
+    public class CreateFile : NameCreator, Act
+    {
+        public void onCall(object data)
+        {
+            ActionManager.callAction(ActionManager.CREATE_NAME, this);
+        }
+
+        public override void onFinishedNaming(bool success, string name)
+        {
+            if (!success) return;
+
+            ReferenceTypeS rTS = FileManager.createSourceFile(name);
+            if (rTS == null) return;
+
+            Window3D spawned = WindowManager.spawnFileWindow();
+            ((FileWindow)spawned).referenceTypeSave = rTS;
+
+            // TODO: add to list in files window
+        }
+
+        public override string getTextEntryWindowMessage()
+        {
+            return "Name File:";
         }
     }
 

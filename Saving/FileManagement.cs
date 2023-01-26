@@ -73,7 +73,7 @@ namespace FileManagement
                 activeWorkspace = new Workspace(workspacePath);
         }
 
-        public static bool createSourceFile(string name)
+        public static ReferenceTypeS createSourceFile(string name)
         {
             return activeWorkspace.createSourceFile(name);
         }
@@ -157,17 +157,19 @@ namespace FileManagement
                         Debug.Log("Source file " + name + " does not exist");
                         return false;
                     }
-
+                    // get ref to source file object
                     ReferenceTypeS sourceFile = _sourceFiles[name];
 
-                    using (StreamWriter w = new StreamWriter(sourceFile.path))
-                    {
-                        w.WriteLine(JsonUtility.ToJson(sourceFile));
-                        return true;
-                    }
+                    // check there is a directory
+                    DirectoryManager.makeDirectory(sourceFile.path);
 
-                    // TODO: also save the source code
-                    // sourceFile.getCode();
+                    // save the source code
+                    using (StreamWriter w = new StreamWriter(sourceFile.path + '/' + sourceFile.name + ".cs"))
+                        w.WriteLine(sourceFile.getCode());
+                    using (StreamWriter w = new StreamWriter(sourceFile.path + '/' + sourceFile.name + ".json"))
+                        w.WriteLine(JsonUtility.ToJson(sourceFile, true));
+
+                    return true;
                 }
                 catch (Exception e)
                 {
@@ -177,16 +179,17 @@ namespace FileManagement
                 }
             }
 
-            public bool createSourceFile(string name)
+            public ReferenceTypeS createSourceFile(string name)
             {
                 if (_sourceFiles.ContainsKey(name))
                 {
                     Debug.Log("File already exists");
-                    return false;
+                    return null;
                 }
 
-                _sourceFiles.Add(name, new ReferenceTypeS(path + '/' + name, name));
-                return true;
+                ReferenceTypeS rTS = new ReferenceTypeS(path + '/' + name, name);
+                _sourceFiles.Add(name, rTS);
+                return rTS;
             }
             
             public bool saveAllFiles()

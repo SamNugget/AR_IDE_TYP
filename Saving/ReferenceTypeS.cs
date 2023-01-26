@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -15,8 +16,8 @@ public class ReferenceTypeS
     public string name;
     public bool isClass;
 
-    public List<FieldS> fields;
-    public List<MethodS> methods;
+    [NonSerialized] public List<FieldS> fields;
+    [NonSerialized] public List<MethodS> methods;
 
     public ReferenceTypeS(string path, string name)
     {

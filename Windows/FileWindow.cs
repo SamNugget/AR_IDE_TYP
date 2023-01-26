@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ActionManagement;
+using FileManagement;
 
 public class FileWindow : EditWindow
 {
@@ -10,12 +11,14 @@ public class FileWindow : EditWindow
 
     public ReferenceTypeS referenceTypeSave
     {
+        get { return _referenceTypeSave; } // temp
         set
         {
             if (_referenceTypeSave == null)
             {
                 _referenceTypeSave = value;
 
+                setName(_referenceTypeSave.name);
                 cIButton.setButtonIcon(_referenceTypeSave.isClass);
 
                 initialiseBlocks();
@@ -47,6 +50,6 @@ public class FileWindow : EditWindow
     public void saveFile()
     {
         if (FileManager.saveSourceFile(name))
-            setTitleTextMessage("");
+            setTitleTextMessage("", false);
     }
 }

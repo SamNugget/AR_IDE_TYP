@@ -7,7 +7,7 @@ using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
 public class Window3D : MonoBehaviour
 {
     [SerializeField] private TextMeshPro titleText;
-    [SerializeField] private string name = "";
+    [SerializeField] protected string name = "";
     public void setName(string name)
     {
         this.name = name;
