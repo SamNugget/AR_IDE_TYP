@@ -43,7 +43,7 @@ public class Block : MonoBehaviour
                 int bVI = 0; // empty block by default
                 if (BlockManager.isCycleable(subBlockTypes[i]))
                     bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // special AM block
-                else if (subBlockTypes[i] == BlockManager.PLACE_VARIABLE)
+                else if (subBlockTypes[i] == BlockManager.PLACE)
                     bVI = BlockManager.getBlockVariantIndex("Place Variable");
 
 
@@ -123,15 +123,18 @@ public class Block : MonoBehaviour
         foreach (Block subBlock in subBlocks)
             subBlock.setSpecialChildBlock(variantIndex, enabled);
 
+
         Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z * 2f);
         if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
         {
+            // conditions for insert line
             if (blockVariant.getSplittableV())
                 localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
-            if (blockVariant.getSplittableH())
+            else if (blockVariant.getSplittableH())
                 localPos.x += ((float)width - 0.5f) * FontManager.horizontalAdvance;
             else return;
         }
+        else return;
 
 
         Block special = findSpecialBlock(variantIndex);
@@ -149,7 +152,7 @@ public class Block : MonoBehaviour
         }
         else
         {
-            // destrot special block
+            // destroy special block
             if (special != null)
                 Destroy(special.gameObject);
         }

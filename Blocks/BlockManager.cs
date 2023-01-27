@@ -5,8 +5,21 @@ using ActionManagement;
 
 public class BlockManager : MonoBehaviour
 {
+    // GENERAL STATE
     public static BlockManager singleton = null;
 
+    public static GameObject blockFab;
+    [SerializeField] private GameObject blockPrefab;
+
+    private static int nextKey;
+
+    //[SerializeField] private bool safeMode = true;
+
+
+
+
+
+    // EDIT STATE
     private static Block _lastMaster;
     public static Block lastMaster
     {
@@ -30,25 +43,25 @@ public class BlockManager : MonoBehaviour
     }
 
 
+
+
+
+    // BLOCK TYPES
     // special
     public readonly static string EMPTY = "EY";
     public readonly static string ANY = "AY";
     public readonly static string SPLITTER = "SR";
     public readonly static string INSERT_LINE = "IL";
-    public readonly static string PLACE_FIELD = "PF";
-    public readonly static string PLACE_METHOD = "PM";
-    public readonly static string PLACE_VARIABLE = "PV";
+    public readonly static string PLACE = "PL";
 
     public readonly static string USING = "UG";
 
     // struct, class, interface, enum, and record constructs
-    public readonly static string CONSTRUCT = "CT";
-    public readonly static string CONSTRUCT_BODY = "CB"; // field or method
     public readonly static string FIELD = "FD"; // @AM @TP @NM {}
     public readonly static string METHOD = "MD"; // @AM @TP @NM() {}
 
     // namespace, class name, method name or variable name
-    public readonly static string NEW_NAME = "NN"; // can be copied but not deleted
+    public readonly static string NEW_NAME = "NN";
     public readonly static string NAME = "NM";
 
     // for fields and methods
@@ -64,8 +77,11 @@ public class BlockManager : MonoBehaviour
     public readonly static string TRUE_FALSE = "TF";
 
 
+
+
+
     private static readonly string[] cycleable = {
-        CONSTRUCT, ACCESS_MODIFIER, TRUE_FALSE
+        ACCESS_MODIFIER, TRUE_FALSE
     };
     public static bool isCycleable(string blockType)
     {
@@ -78,47 +94,56 @@ public class BlockManager : MonoBehaviour
         string blockType = variant.getBlockType();
 
         // try get next ahead in list
-        for (int i = getBlockVariantIndex(variant) + 1; i < singleton.blockVariants.Count; i++)
-            if (singleton.blockVariants[i].getBlockType() == blockType) return i;
+        bool found = false;
+        foreach (KeyValuePair<int, BlockVariant> kvp in _defaultBlockVariants)
+        {
+            if (!found && kvp.Value == variant) found = true;
+            else if (kvp.Value.getBlockType() == blockType) return kvp.Key;
+        }
+        foreach (KeyValuePair<int, BlockVariant> kvp in _customBlockVariants)
+        {
+            if (!found && kvp.Value == variant) found = true;
+            else if (kvp.Value.getBlockType() == blockType) return kvp.Key;
+        }
 
         // try get first from beginning of list
         return getFirstVariantOfType(blockType);
     }
     public static int getFirstVariantOfType(string blockType)
     {
-        for (int i = 0; i < singleton.blockVariants.Count; i++)
-            if (singleton.blockVariants[i].getBlockType() == blockType) return i;
+        foreach (KeyValuePair<int, BlockVariant> kvp in _defaultBlockVariants)
+            if (kvp.Value.getBlockType() == blockType) return kvp.Key;
+        foreach (KeyValuePair<int, BlockVariant> kvp in _customBlockVariants)
+            if (kvp.Value.getBlockType() == blockType) return kvp.Key;
+
+        Debug.Log("Err, there are no blocks of block type " + blockType + " .");
         return -1;
     }
 
 
 
-    public static GameObject blockFab;
-    [SerializeField] private GameObject blockPrefab;
 
 
-    //[SerializeField] private bool safeMode = true;
-
+    // BLOCK VARIANTS
+    private static Dictionary<int, BlockVariant> _defaultBlockVariants;
+    private static Dictionary<int, BlockVariant> _customBlockVariants;
 
     [SerializeField] private List<BlockVariant> blockVariants;
     [System.Serializable]
     public class BlockVariant
     {
+        // int id = Dictionary key
         [SerializeField] private string name;
-
         [SerializeField] private string blockType;
-
         private string[] subBlockTypes;
 
         [SerializeField] private Color color;
-
         [SerializeField] private bool splittableV;
-
         [SerializeField] private bool splittableH;
+        [SerializeField] private bool deleteable;
 
-
-        // DEFAULT VALUES, WILL BE CHANGED IN INSTANCE OF BLOCK
-        // an array containing the text for each line in the block. '@BT' marks an input field
+        // an array containing the text for each line in the block
+        // '@BT' marks an input field, and is replaced in a Block instance
         [SerializeField] private string[] lines;
 
         // width and height in letters/lines
@@ -133,12 +158,10 @@ public class BlockManager : MonoBehaviour
         {
             return name;
         }
-
         public string getBlockType()
         {
             return blockType;
         }
-
         public string[] getSubBlockTypes()
         {
             string[] sBTs = new string[subBlockTypes.Length];
@@ -150,10 +173,9 @@ public class BlockManager : MonoBehaviour
         {
             return new Color(color.r, color.g, color.b, color.a);
         }
-
         public bool getSplittableV() { return splittableV; }
-
         public bool getSplittableH() { return splittableH; }
+        public bool getDeleteable() { return deleteable; }
 
         // DEFAULT VALUES GET METHODS
         public string[] getLines()
@@ -164,9 +186,7 @@ public class BlockManager : MonoBehaviour
         }
 
         public int getWidth() { return width; }
-
         public int getHeight() { return height; }
-
         public int[,] getSubBlockPositions()
         {
             int[,] sBPs = new int[subBlockPositions.GetLength(0), 2];
@@ -177,7 +197,6 @@ public class BlockManager : MonoBehaviour
             }
             return sBPs;
         }
-
         public int getSubBlockCount()
         {
             return subBlockPositions.GetLength(0);
@@ -185,17 +204,25 @@ public class BlockManager : MonoBehaviour
 
 
 
-        public BlockVariant(string name, string blockType, Color color, bool splittableV, bool splittableH, string[] lines)
+        // constructor for name blocks
+        public BlockVariant(string name)
         {
             this.name = name;
-            this.blockType = blockType;
-            this.color = color;
-            this.splittableV = splittableV;
-            this.splittableH = splittableH;
-            this.lines = lines;
+            blockType = NAME;
+
+            color = singleton.variableColor;
+            splittableV = false;
+            splittableH = false;
+            deleteable = true;
+
+            lines = new string[] { name };
+
+
 
             calculateInstanceVariables();
         }
+
+
 
         public void calculateInstanceVariables()
         {
@@ -228,38 +255,50 @@ public class BlockManager : MonoBehaviour
     }
     public static BlockVariant getBlockVariant(int index)
     {
-        if (index < 0 || index >= singleton.blockVariants.Count)
-        {
-            Debug.Log("Block variant index out of range.");
-            return null;
-        }
-        else return singleton.blockVariants[index];
+        if (_defaultBlockVariants.ContainsKey(index))
+            return _defaultBlockVariants[index];
+        if (_customBlockVariants.ContainsKey(index))
+            return _customBlockVariants[index];
+
+        Debug.Log("Err, block variant index " + index + " is invalid.");
+        return null;
     }
     public static BlockVariant getBlockVariant(string name)
     {
-        foreach (BlockVariant bV in singleton.blockVariants)
-            if (bV.getName().Equals(name)) return bV;
-        Debug.Log("Err, block variant " + name + " does not exist.");
-        return null;
+        KeyValuePair<int, BlockVariant> kvp = getKeyValuePair(name);
+        return kvp.Value;
     }
     public static int getBlockVariantIndex(string name)
     {
-        BlockVariant bV = getBlockVariant(name);
-        return getBlockVariantIndex(bV);
+        KeyValuePair<int, BlockVariant> kvp = getKeyValuePair(name);
+        return kvp.Key;
     }
     public static int getBlockVariantIndex(BlockVariant bV)
     {
-        return singleton.blockVariants.IndexOf(bV);
+        foreach (KeyValuePair<int, BlockVariant> kvp in _defaultBlockVariants)
+            if (kvp.Value == bV) return kvp.Key;
+        foreach (KeyValuePair<int, BlockVariant> kvp in _customBlockVariants)
+            if (kvp.Value == bV) return kvp.Key;
+
+        Debug.Log("Err, block variant " + bV.getName() + " is not in a dictionary.");
+        return -1;
+    }
+    private static KeyValuePair<int, BlockVariant> getKeyValuePair(string name)
+    {
+        foreach (KeyValuePair<int, BlockVariant> kvp in _defaultBlockVariants)
+            if (kvp.Value.getName() == name) return kvp;
+        foreach (KeyValuePair<int, BlockVariant> kvp in _customBlockVariants)
+            if (kvp.Value.getName() == name) return kvp;
+
+        Debug.Log("Err, block variant " + name + " does not exist.");
+        return default(KeyValuePair<int, BlockVariant>);
     }
     public static int getNoOfBlockVariants()
     {
-        return singleton.blockVariants.Count;
+        return (_defaultBlockVariants.Count + _customBlockVariants.Count);
     }
 
 
-
-    // TODO: on load, get custom block types first (e.g., variables)
-    // then spawn the top level block for each window and it will cascade
 
 
 
@@ -348,6 +387,7 @@ public class BlockManager : MonoBehaviour
 
 
 
+
     public static int getMaxLineLength(string[] lines)
     {
         int longest = -1;
@@ -385,8 +425,6 @@ public class BlockManager : MonoBehaviour
         return subBlockPositions;
     }
 
-
-
     private static Block getNonSplitterParent(Block b)
     {
         Block highestSplitter = b;
@@ -404,15 +442,19 @@ public class BlockManager : MonoBehaviour
 
 
 
+
+
     [SerializeField] private Color variableColor;
     public static int createNameBlock(string name)
     {
-        string[] lines = new string[] { name };
-        BlockVariant newVariable = new BlockVariant(name, NAME, singleton.variableColor, false, false, lines);
-        singleton.blockVariants.Add(newVariable);
+        BlockVariant newVariant = new BlockVariant(name);
+        nextKey++;
+        _customBlockVariants.Add(nextKey, newVariant);
 
-        return singleton.blockVariants.Count - 1;
+        return nextKey;
     }
+
+
 
 
 
@@ -442,15 +484,42 @@ public class BlockManager : MonoBehaviour
 
 
 
+
+
     void Awake()
     {
         if (singleton == null) singleton = this;
         else Debug.LogError("Two BlockManager singletons.");
 
+
+
         blockFab = blockPrefab;
 
-        foreach (BlockVariant bT in blockVariants)
+
+
+        // create dictionaries
+        _defaultBlockVariants = new Dictionary<int, BlockVariant>();
+        for (int i = 0; i < blockVariants.Count; i++)
+        {
+            BlockVariant bT = blockVariants[i];
+            _defaultBlockVariants.Add(i, bT);
+            // initialise blockVariants
             bT.calculateInstanceVariables();
+        }
+
+        // TODO: save/load custom block variants
+        _customBlockVariants = new Dictionary<int, BlockVariant>();
+
+        // get highest key value for any dictionary
+        Dictionary<int, BlockVariant>.KeyCollection keys = _customBlockVariants.Keys;
+        if (keys.Count == 0) keys = _defaultBlockVariants.Keys;
+        int highest = -1;
+        foreach (int key in keys)
+            if (key > highest) highest = key;
+
+        nextKey = highest + 1;
+
+
 
         foreach (string type in cycleable)
             ActionManager.blocksEnabledDefault.Add(type);

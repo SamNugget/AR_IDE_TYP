@@ -185,16 +185,8 @@ public class WindowManager : MonoBehaviour
 
     [SerializeField] private GameObject textEntryWindowFab;
     private static WindowSettings textEntryWS = new WindowSettings();
-    public static Window3D spawnTextInputWindow()
+    public static Window3D spawnTextInputWindow(Window3D parent = null)
     {
-        Window3D w = makeWindowChildOfWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS);
-        if (w != null) return w;
-
-        Window3D parent = getWindowWithComponent<FilesWindow>();
-        if (parent == null)
-            parent = getWindowWithComponent<WorkspacesButtonManager>();
-        if (parent == null) return null;
-
         return makeWindowChildOfWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
     }
 
