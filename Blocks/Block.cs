@@ -22,61 +22,78 @@ public class Block : MonoBehaviour
 
 
 
-    public void initialise(int blockVariant, BlockSave blockSave = null)
+
+
+    public void initialise(int blockVariantIndex)
     {
-        this.blockVariant = BlockManager.getBlockVariant(blockVariant);
-        this.subBlocks = new List<Block>();
-        this.gameObject.name = this.blockVariant.getName();
+        BlockManager.BlockVariant blockVariant = BlockManager.getBlockVariant(blockVariantIndex);
 
+        string[] subBlockTypes = blockVariant.getSubBlockTypes();
 
-
-        string blockType = this.blockVariant.getBlockType();
-        string[] subBlockTypes = this.blockVariant.getSubBlockTypes();
-        if (blockSave == null || blockSave.subBlocks.Length != this.blockVariant.getSubBlockCount())
+        BlockSave[] subBlockSaves = new BlockSave[subBlockTypes.Length];
+        for (int i = 0; i < subBlockTypes.Length; i++)
         {
-            if (blockSave != null) Debug.Log("Block initialised with an incorrect blockSave.subBlocks Array");
+            int bVI = 0; // empty block by default
+            if (BlockManager.isCycleable(subBlockTypes[i]))
+                bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // e.g., special AM block
+            else if (subBlockTypes[i] == BlockManager.PLACE)
+                bVI = BlockManager.getBlockVariantIndex("Place Variable"); // special [+] blocks
 
-            blockSave = new BlockSave();
-            blockSave.subBlocks = new BlockSave[subBlockTypes.Length];
-            for (int i = 0; i < subBlockTypes.Length; i++)
-            {
-                int bVI = 0; // empty block by default
-                if (BlockManager.isCycleable(subBlockTypes[i]))
-                    bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // special AM block
-                else if (subBlockTypes[i] == BlockManager.PLACE)
-                    bVI = BlockManager.getBlockVariantIndex("Place Variable");
-
-
-                blockSave.subBlocks[i] = new BlockSave();
-                blockSave.subBlocks[i].blockVariant = bVI;
-            }
+            subBlockSaves[i] = new BlockSave(bVI, null);
         }
 
+        BlockSave blockSave = new BlockSave(blockVariantIndex, subBlockSaves);
+        initialise(blockSave);
+    }
+
+    public void initialise(BlockSave blockSave)
+    {
+        this.blockVariant = BlockManager.getBlockVariant(blockSave.blockVariant);
+        this.subBlocks = new List<Block>();
+        this.gameObject.name = this.blockVariant.getName();
+        // set colour
+        transform.GetComponentInChildren<MeshRenderer>().material.color = blockVariant.getColor();
 
 
-        // set collider enabled if special type
+
+
+        // SPECIAL BLOCKS setup
+        string blockType = blockVariant.getBlockType();
+        // if insert line, set collider enabled
         if (blockType == BlockManager.INSERT_LINE)
             GetComponentInChildren<Collider>().enabled = true;
-        // set colour
-        transform.GetComponentInChildren<MeshRenderer>().material.color = this.blockVariant.getColor();
+        // if name required, call naming action
+        if (blockType == BlockManager.NEW_NAME)
+            ActionManager.callAction(ActionManager.NAME_VARIABLE, new Block[] { getParent(), this });
 
 
 
+
+        if (blockSave.subBlocks == null) return;
         // spawn all sub blocks
         for (int i = 0; i < blockSave.subBlocks.Length; i++)
         {
             Transform subBlock = Instantiate(BlockManager.blockFab, transform).transform;
+
             Block subBlockScript = subBlock.GetComponent<Block>();
-
-            subBlockScript.initialise(blockSave.subBlocks[i].blockVariant);
-
+            subBlockScript.initialise(blockSave.subBlocks[i]);
             subBlocks.Add(subBlockScript);
-
-            // if name required to place block, call naming action
-            if (subBlockTypes[i] == BlockManager.NEW_NAME)
-                ActionManager.callAction(ActionManager.NAME_VARIABLE, new Block[] { this, subBlockScript });
         }
     }
+
+    public BlockSave saveBlock()
+    {
+        BlockSave[] blockSaves = new BlockSave[subBlocks.Count];
+        for (int i = 0; i < subBlocks.Count; i++)
+            blockSaves[i] = subBlocks[i].saveBlock();
+
+        BlockSave bS = new BlockSave(BlockManager.getBlockVariantIndex(blockVariant), blockSaves);
+        return bS;
+    }
+
+
+
+
 
     public void drawBlock(bool master = true)
     {
@@ -99,98 +116,6 @@ public class Block : MonoBehaviour
         }
     }
 
-    public void setColliderEnabled(bool enabled, List<string> mask = null, bool invert = false)
-    {
-        foreach (Block subBlock in subBlocks)
-            subBlock.setColliderEnabled(enabled, mask, invert);
-
-        if (mask == null)
-        {
-            GetComponentInChildren<Collider>().enabled = enabled;
-            return;
-        }
-
-        bool contains = mask.Contains(blockVariant.getBlockType());
-        Collider collider = GetComponentInChildren<Collider>();
-        if (invert ? !contains : contains)
-            collider.enabled = enabled;
-        else
-            collider.enabled = !enabled;
-    }
-
-    public void setSpecialChildBlock(int variantIndex, bool enabled)
-    {
-        foreach (Block subBlock in subBlocks)
-            subBlock.setSpecialChildBlock(variantIndex, enabled);
-
-
-        Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z * 2f);
-        if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
-        {
-            // conditions for insert line
-            if (blockVariant.getSplittableV())
-                localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
-            else if (blockVariant.getSplittableH())
-                localPos.x += ((float)width - 0.5f) * FontManager.horizontalAdvance;
-            else return;
-        }
-        else return;
-
-
-        Block special = findSpecialBlock(variantIndex);
-        if (enabled)
-        {
-            // spawn special block
-            if (special == null)
-            {
-                GameObject subBlock = Instantiate(BlockManager.blockFab, transform);
-                special = subBlock.GetComponent<Block>();
-                special.initialise(variantIndex);
-                special.drawBlock();
-            }
-            special.transform.localPosition = localPos;
-        }
-        else
-        {
-            // destroy special block
-            if (special != null)
-                Destroy(special.gameObject);
-        }
-    }
-
-    public bool enableLeafBlocks() // returns hasSubBlocks
-    {
-        bool isLeaf = false;
-        bool hasSubBlocks = (subBlocks.Count != 0);
-
-        if (hasSubBlocks)
-        {
-            isLeaf = true; // possible leaf
-            foreach (Block subBlock in subBlocks)
-                if (subBlock.enableLeafBlocks() == true)
-                    isLeaf = false; // one child with a child of its own makes this not a leaf
-        }
-
-        GetComponentInChildren<Collider>().enabled = isLeaf;
-
-        return hasSubBlocks;
-    }
-
-    private Block findSpecialBlock(int variantToFind)
-    {
-        foreach (Transform child in transform)
-        {
-            Block block = child.GetComponent<Block>();
-            if (block != null)
-            {
-                int blockVariant = BlockManager.getBlockVariantIndex(block.getBlockVariant());
-                if (blockVariant == variantToFind)
-                    return block;
-            }
-        }
-        return null;
-    }
-
     // fills text box with text, updates width and height, and moves subblocks
     private void populateTextBox()
     {
@@ -199,6 +124,7 @@ public class Block : MonoBehaviour
         textBox.text = text;
     }
 
+    // recursive if wanting text from this block and subblocks together
     public string getBlockText(bool recursive = false)
     {
         width = -1;
@@ -322,6 +248,98 @@ public class Block : MonoBehaviour
 
 
 
+
+
+    public void setColliderEnabled(bool enabled, List<string> mask = null, bool invert = false)
+    {
+        foreach (Block subBlock in subBlocks)
+            subBlock.setColliderEnabled(enabled, mask, invert);
+
+        if (mask == null)
+        {
+            GetComponentInChildren<Collider>().enabled = enabled;
+            return;
+        }
+
+        bool contains = mask.Contains(blockVariant.getBlockType());
+        Collider collider = GetComponentInChildren<Collider>();
+        if (invert ? !contains : contains)
+            collider.enabled = enabled;
+        else
+            collider.enabled = !enabled;
+    }
+
+    public void setSpecialChildBlock(int variantIndex, bool enabled)
+    {
+        foreach (Block subBlock in subBlocks)
+            subBlock.setSpecialChildBlock(variantIndex, enabled);
+
+
+        Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z * 2f);
+        if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
+        {
+            // conditions for insert line
+            if (blockVariant.getSplittableV())
+                localPos.y -= ((float)height - 0.5f) * FontManager.lineHeight;
+            else if (blockVariant.getSplittableH())
+                localPos.x += ((float)width - 0.5f) * FontManager.horizontalAdvance;
+            else return;
+        }
+        else return;
+
+
+        Block special = findSpecialBlock(variantIndex);
+        if (enabled)
+        {
+            // spawn special block
+            if (special == null)
+            {
+                GameObject subBlock = Instantiate(BlockManager.blockFab, transform);
+                special = subBlock.GetComponent<Block>();
+                special.initialise(variantIndex);
+                special.drawBlock();
+            }
+            special.transform.localPosition = localPos;
+        }
+        else
+        {
+            // destroy special block
+            if (special != null)
+                Destroy(special.gameObject);
+        }
+    }
+
+    private Block findSpecialBlock(int variantToFind)
+    {
+        foreach (Transform child in transform)
+        {
+            Block block = child.GetComponent<Block>();
+            if (block != null)
+            {
+                int blockVariant = BlockManager.getBlockVariantIndex(block.getBlockVariant());
+                if (blockVariant == variantToFind)
+                    return block;
+            }
+        }
+        return null;
+    }
+
+    public bool enableLeafBlocks() // returns hasSubBlocks
+    {
+        bool isDeleteable = blockVariant.getDeleteable();
+
+        foreach (Block subBlock in subBlocks)
+            if (subBlock.enableLeafBlocks())
+                isDeleteable = false;
+
+        GetComponentInChildren<Collider>().enabled = isDeleteable;
+        return isDeleteable;
+    }
+
+
+
+
+
     public int getSubBlockIndex(Block b)
     {
         return subBlocks.IndexOf(b);
@@ -338,10 +356,9 @@ public class Block : MonoBehaviour
         subBlocks[index] = b;
     }
 
-    public string getText()
-    {
-        return textBox.text;
-    }
+
+
+
 
     public Block getParent()
     {

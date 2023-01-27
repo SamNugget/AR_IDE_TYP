@@ -1,13 +1,24 @@
+using System;
+
 [System.Serializable]
 public class MethodS
 {
-    public Block methodDeclaration;
-    public Block methodBodyMaster;
+    [NonSerialized] public Block methodDeclaration;
+    public BlockSave methodDeclarationS;
+    [NonSerialized] public Block methodBodyMaster;
+    public BlockSave methodBodyMasterS;
 
     public MethodS(Block methodDeclaration, Block methodBodyMaster)
     {
         this.methodDeclaration = methodDeclaration;
         this.methodBodyMaster = methodBodyMaster;
+    }
+
+    public void save()
+    {
+        methodDeclarationS = methodDeclaration.saveBlock();
+        if (methodBodyMaster != null)
+            methodBodyMasterS = methodBodyMaster.saveBlock();
     }
 
     public string getCode(bool body)

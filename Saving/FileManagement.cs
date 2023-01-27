@@ -159,6 +159,7 @@ namespace FileManagement
                     }
                     // get ref to source file object
                     ReferenceTypeS sourceFile = _sourceFiles[name];
+                    sourceFile.save();
 
                     // check there is a directory
                     DirectoryManager.makeDirectory(sourceFile.path);

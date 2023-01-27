@@ -54,15 +54,13 @@ public class BlockManager : MonoBehaviour
     public readonly static string INSERT_LINE = "IL";
     public readonly static string PLACE = "PL";
 
-    public readonly static string USING = "UG";
-
     // struct, class, interface, enum, and record constructs
-    public readonly static string FIELD = "FD"; // @AM @TP @NM {}
-    public readonly static string METHOD = "MD"; // @AM @TP @NM() {}
+    public readonly static string FIELD = "FD"; // @AM @TP @NM
+    public readonly static string METHOD = "MD"; // @AM @TP @NM(@PL)
 
     // namespace, class name, method name or variable name
-    public readonly static string NEW_NAME = "NN";
     public readonly static string NAME = "NM";
+    public readonly static string NEW_NAME = "NN"; // will create text entry
 
     // for fields and methods
     public readonly static string ACCESS_MODIFIER = "AM"; // public, private, etc.
@@ -70,7 +68,6 @@ public class BlockManager : MonoBehaviour
 
     // for inside methods and constructors
     public readonly static string BODY = "BY"; // if statements, variable declaration, etc.
-    //public readonly static string VARIABLE_DECLARATION = "VD"; // @TP @VN
 
     // for if statements, while loops
     public readonly static string BOOLEAN_EXPRESSION = "BE"; // true, i == 1, etc.
@@ -303,7 +300,7 @@ public class BlockManager : MonoBehaviour
 
 
     // called when spawning and deleting (/spawning empty block) block
-    public static Block spawnBlock(int blockVariant, Block toReplace, bool emptyOnly = true)
+    public static Block spawnBlock(int blockVariant, Block toReplace, bool emptyOnly = true, BlockSave blockSave = null)
     {
         // can this block be replaced
         bool replacingEmpty = toReplace.getBlockVariant().getBlockType().Equals(EMPTY);
@@ -324,7 +321,8 @@ public class BlockManager : MonoBehaviour
         // configure new block
         Block newBlock = Instantiate(blockFab, parent.transform).GetComponent<Block>();
         newBlock.transform.position = toReplace.transform.position;
-        newBlock.initialise(blockVariant);
+        if (blockSave != null) newBlock.initialise(blockSave);
+        else                   newBlock.initialise(blockVariant);
 
         // reconfigure parent
         parent.replaceSubBlock(newBlock, subBlockIndex);

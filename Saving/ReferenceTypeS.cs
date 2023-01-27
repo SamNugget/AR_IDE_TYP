@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -16,8 +15,8 @@ public class ReferenceTypeS
     public string name;
     public bool isClass;
 
-    [NonSerialized] public List<FieldS> fields;
-    [NonSerialized] public List<MethodS> methods;
+    public List<FieldS> fields;
+    public List<MethodS> methods;
 
     public ReferenceTypeS(string path, string name)
     {
@@ -29,38 +28,12 @@ public class ReferenceTypeS
         methods = new List<MethodS>();
     }
 
-    public void addField(Block fieldBlock)
-    {
-        fields.Add(new FieldS(fieldBlock));
-    }
-
-    public void removeField(Block fieldBlock)
+    public void save()
     {
         foreach (FieldS f in fields)
-        {
-            if (f.fieldBlock == fieldBlock)
-            {
-                fields.Remove(f);
-                return;
-            }
-        }
-    }
-
-    public void addMethod(Block methodDeclaration, Block methodBodyMaster)
-    {
-        methods.Add(new MethodS(methodDeclaration, methodBodyMaster));
-    }
-
-    public void removeMethod(Block methodDeclaration)
-    {
+            f.save();
         foreach (MethodS m in methods)
-        {
-            if (m.methodDeclaration == methodDeclaration)
-            {
-                methods.Remove(m);
-                return;
-            }
-        }
+            m.save();
     }
 
     public string getCode()
@@ -98,6 +71,48 @@ public class ReferenceTypeS
         code += '}';
         return code;
     }
+
+
+
+
+
+    public void addField(Block fieldBlock)
+    {
+        fields.Add(new FieldS(fieldBlock));
+    }
+
+    public void removeField(Block fieldBlock)
+    {
+        foreach (FieldS f in fields)
+        {
+            if (f.fieldBlock == fieldBlock)
+            {
+                fields.Remove(f);
+                return;
+            }
+        }
+    }
+
+    public void addMethod(Block methodDeclaration, Block methodBodyMaster)
+    {
+        methods.Add(new MethodS(methodDeclaration, methodBodyMaster));
+    }
+
+    public void removeMethod(Block methodDeclaration)
+    {
+        foreach (MethodS m in methods)
+        {
+            if (m.methodDeclaration == methodDeclaration)
+            {
+                methods.Remove(m);
+                return;
+            }
+        }
+    }
+
+
+
+
 
     public bool cycleReferenceType()
     {
