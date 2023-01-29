@@ -29,7 +29,7 @@ namespace ActionManagement
 
 
 
-        public static List<string> blocksEnabledDefault = new List<string>() { BlockManager.NAME, BlockManager.PLACE }; // +all cyclable
+        public static List<string> blocksEnabledDefault = new List<string>() { BlockManager.NAME, BlockManager.PLACE, BlockManager.OPEN_METHOD }; // +all cyclable
         public static List<string> blocksEnabledForPlacing
         {
             get
@@ -246,7 +246,7 @@ namespace ActionManagement
                 Block spawned = BlockManager.spawnBlock(nVIndex, clicked, false);
                 spawned.setColliderEnabled(true);
 
-                master.drawBlock();
+                master.drawBlock(true);
             }
             // lines are inserted
             else if (type == BlockManager.INSERT_LINE)
@@ -259,6 +259,15 @@ namespace ActionManagement
                 BlockManager.lastMaster = master;
                 ActionManager.callAction(ActionManager.NAME_FIELD_OR_METHOD, clicked);
                 codeModified = false; // change is in next action
+            }
+            else if (type == BlockManager.OPEN_METHOD)
+            {
+                FileWindow fileWindow = master.GetComponentInParent<FileWindow>();
+                Block declarationBlock = clicked.getParent();
+
+                WindowManager.moveMethodWindow(fileWindow, declarationBlock);
+
+                codeModified = false; // opening file
             }
 
 
@@ -399,6 +408,11 @@ namespace ActionManagement
             Block block = (Block)data;
             Block splitter = BlockManager.splitBlock(block.getParent());
 
+            // if splitting method or field, insert new method/field line
+            string blockName = block.getBlockVariant().getName();
+            if (blockName == "Field" || blockName == "Method")
+                BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(blockName), splitter.getSubBlock(1));
+
             splitter.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
         }
 
@@ -503,7 +517,7 @@ namespace ActionManagement
             if (!success) return;
 
 
-            int emptyNameBlockIndex = 2;
+            int emptyNameBlockIndex;
             Block b;
             if (blockName == "Place Variable")
             {
@@ -515,11 +529,13 @@ namespace ActionManagement
             {
                 b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Field"), clicked, false);
                 ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addField(b);
+                emptyNameBlockIndex = 2;
             }
             else if (blockName == "Place Method")
             {
                 b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
-                ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addMethod(b, null);
+                ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addMethod(b);
+                emptyNameBlockIndex = 3;
             }
             else
             {

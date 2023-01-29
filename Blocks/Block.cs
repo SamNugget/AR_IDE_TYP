@@ -37,7 +37,9 @@ public class Block : MonoBehaviour
             if (BlockManager.isCycleable(subBlockTypes[i]))
                 bVI = BlockManager.getFirstVariantOfType(subBlockTypes[i]); // e.g., special AM block
             else if (subBlockTypes[i] == BlockManager.PLACE)
-                bVI = BlockManager.getBlockVariantIndex("Place Variable"); // special [+] blocks
+                bVI = BlockManager.getBlockVariantIndex("Place Variable"); // special [+] block
+            else if (subBlockTypes[i] == BlockManager.OPEN_METHOD)
+                bVI = BlockManager.getBlockVariantIndex("Open Method"); // special [O] block
 
             subBlockSaves[i] = new BlockSave(bVI, null);
         }
@@ -95,7 +97,7 @@ public class Block : MonoBehaviour
 
 
 
-    public void drawBlock(bool master = true)
+    public void drawBlock(bool master)
     {
         foreach (Block subBlock in subBlocks)
             subBlock.drawBlock(false);
@@ -119,13 +121,13 @@ public class Block : MonoBehaviour
     // fills text box with text, updates width and height, and moves subblocks
     private void populateTextBox()
     {
-        string text = getBlockText();
+        string text = getBlockText(false);
 
         textBox.text = text;
     }
 
     // recursive if wanting text from this block and subblocks together
-    public string getBlockText(bool recursive = false)
+    public string getBlockText(bool recursive)
     {
         width = -1;
         height = blockVariant.getHeight();
@@ -297,7 +299,7 @@ public class Block : MonoBehaviour
                 GameObject subBlock = Instantiate(BlockManager.blockFab, transform);
                 special = subBlock.GetComponent<Block>();
                 special.initialise(variantIndex);
-                special.drawBlock();
+                special.drawBlock(false);
             }
             special.transform.localPosition = localPos;
         }

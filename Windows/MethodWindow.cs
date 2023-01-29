@@ -23,10 +23,25 @@ public class MethodWindow : EditWindow
 
     private void initialiseBlocks()
     {
-        masterBlock = Instantiate(BlockManager.blockFab, transform.GetChild(0)).transform.GetComponent<Block>();
-        masterBlock.transform.localScale = new Vector3(WindowManager.blockScale, WindowManager.blockScale, WindowManager.blockScale);
-        masterBlock.initialise(0);
+        // create the master block
+        masterBlock = Instantiate(BlockManager.blockFab, transform).transform.GetComponent<Block>();
+        float s = WindowManager.blockScale;
+        masterBlock.transform.localScale = new Vector3(s, s, s);
 
+        // try find a block save, otherwise empty block
+        if (_methodSave.methodBodyMasterS != null)
+            masterBlock.initialise(_methodSave.methodBodyMasterS);
+        else if (_methodSave.bodySaveBuffer != null)
+            masterBlock.initialise(_methodSave.bodySaveBuffer);
+        else masterBlock.initialise(0);
+
+        masterBlock.drawBlock(true);
         masterBlock.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
+    }
+
+    public override void close()
+    {
+        _methodSave.saveBodyToBuffer();
+        base.close();
     }
 }

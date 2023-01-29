@@ -165,10 +165,18 @@ public class WindowManager : MonoBehaviour
 
     [SerializeField] private GameObject methodWindowFab;
     private static WindowSettings methodWS = new WindowSettings();
-    public static void moveMethodWindow()
+    public static void moveMethodWindow(FileWindow fileWindow, Block declarationBlock)
     {
         ActionManager.clearMode();
-        makeWindowChildOfWindow<MethodWindow>(singleton.methodWindowFab, ref methodWS);
+
+        MethodS mS = fileWindow.referenceTypeSave.findMethodSave(declarationBlock);
+
+        MethodWindow mW = (MethodWindow)replaceChildWindow(singleton.methodWindowFab, ref methodWS, (Window3D)fileWindow);
+
+        mW.methodSave = mS;
+        mW.setName(declarationBlock.getSubBlock(3).getBlockText(false));
+
+        fileWindow.referenceTypeSave.addMethodBody(declarationBlock, mW.masterBlock);
     }
 
 
@@ -178,8 +186,8 @@ public class WindowManager : MonoBehaviour
     private static WindowSettings blockWS = new WindowSettings(new Vector3(-0.15f, 0f, -0f));
     public static void moveEditToolWindows()
     {
-        makeWindowChildOfWindow<ToolsWindow>(singleton.toolsWindowFab, ref toolsWS);
-        makeWindowChildOfWindow<EditButtonManager>(singleton.blockSelectWindowFab, ref blockWS);
+        replaceChildWindow<ToolsWindow>(singleton.toolsWindowFab, ref toolsWS);
+        replaceChildWindow<EditButtonManager>(singleton.blockSelectWindowFab, ref blockWS);
     }
 
 
@@ -187,7 +195,7 @@ public class WindowManager : MonoBehaviour
     private static WindowSettings textEntryWS = new WindowSettings();
     public static Window3D spawnTextInputWindow(Window3D parent = null)
     {
-        return makeWindowChildOfWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
+        return replaceChildWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
     }
 
 
@@ -239,13 +247,13 @@ public class WindowManager : MonoBehaviour
         Window3D newWindow = spawnWindow(newWindowFab, Vector3.zero, existingWindow.transform.GetChild(0));
         newWindow.GetComponentInChildren<RadialView>().enabled = isFollowing;
 
-        destroyWindow(existingWindow);
+        existingWindow.close();
 
         return newWindow;
     }
 
     // finds the sole window with component T and changes the parent
-    private static Window3D makeWindowChildOfWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent = null)
+    private static Window3D replaceChildWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent = null)
     {
         // get the last window being edited
         if (parent == null)
@@ -276,6 +284,21 @@ public class WindowManager : MonoBehaviour
         }
 
         return window;
+    }
+
+    // finds the sole window (if exists) attached to parent, and moves it/spawns one
+    private static Window3D replaceChildWindow(GameObject windowFab, ref WindowSettings settings, Window3D parent)
+    {
+        Transform p = parent.transform.GetChild(0);
+
+        // find the window
+        Window3D window = p.GetComponentInChildren<Window3D>();
+
+        // if window exists, close
+        if (window != null) window.close();
+
+        // spawn a new child window
+        return spawnWindow(windowFab, settings, p);
     }
 
     public static void destroyWindow(Window3D window)

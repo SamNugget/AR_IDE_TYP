@@ -32,7 +32,7 @@ public class BlockManager : MonoBehaviour
             if (value == null) return;
 
             _lastMaster = value;
-            _lastMaster.drawBlock();
+            _lastMaster.drawBlock(true);
             WindowManager.moveEditToolWindows();
         }
     }
@@ -46,13 +46,14 @@ public class BlockManager : MonoBehaviour
 
 
 
-    // BLOCK TYPES
+    // BLOCK TYPES - needs overhaul, fuzzy line between type and variant
     // special
     public readonly static string EMPTY = "EY";
     public readonly static string ANY = "AY";
     public readonly static string SPLITTER = "SR";
     public readonly static string INSERT_LINE = "IL";
     public readonly static string PLACE = "PL";
+    public readonly static string OPEN_METHOD = "OM";
 
     // struct, class, interface, enum, and record constructs
     public readonly static string FIELD = "FD"; // @AM @TP @NM
@@ -380,6 +381,26 @@ public class BlockManager : MonoBehaviour
         lastMaster = parent.getMasterBlock();
 
         return splitter;
+    }
+
+
+
+
+    
+    public static string blockSaveToText(BlockSave bS)
+    {
+        // create temporary block for block text compute, not very elegant
+        GameObject g = Instantiate(blockFab);
+        Block b = g.GetComponent<Block>();
+        b.initialise(bS);
+
+        // compute body text
+        string blockText = b.getBlockText(true);
+
+        // destroy temporary block
+        Destroy(g);
+
+        return blockText;
     }
 
 

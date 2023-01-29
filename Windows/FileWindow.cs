@@ -35,7 +35,7 @@ public class FileWindow : EditWindow
         masterBlock.initialise(BlockManager.getBlockVariantIndex("Window Block"));
 
 
-        // load the fields. TODO: tidy! this looks gross
+        // load the fields. TODO: make this more elegant
         Block topBlock = masterBlock.getSubBlock(0);
         if (_referenceTypeSave.fields.Count == 0)
             BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Place Field"), topBlock);

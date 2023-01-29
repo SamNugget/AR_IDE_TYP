@@ -93,21 +93,33 @@ public class ReferenceTypeS
         }
     }
 
-    public void addMethod(Block methodDeclaration, Block methodBodyMaster)
+    public void addMethod(Block methodDeclaration)
     {
-        methods.Add(new MethodS(methodDeclaration, methodBodyMaster));
+        methods.Add(new MethodS(methodDeclaration));
     }
 
     public void removeMethod(Block methodDeclaration)
     {
+        MethodS m = findMethodSave(methodDeclaration);
+        methods.Remove(m);
+    }
+
+    public void addMethodBody(Block methodDeclaration, Block methodBodyMaster)
+    {
+        MethodS m = findMethodSave(methodDeclaration);
+        if (m != null) m.methodBodyMaster = methodBodyMaster;
+    }
+
+    public MethodS findMethodSave(Block b, bool dec = true)
+    {
         foreach (MethodS m in methods)
         {
-            if (m.methodDeclaration == methodDeclaration)
-            {
-                methods.Remove(m);
-                return;
-            }
+            if (dec && m.methodDeclaration == b)
+                return m;
+            else if (!dec && m.methodBodyMaster == b)
+                return m;
         }
+        return null;
     }
 
 
