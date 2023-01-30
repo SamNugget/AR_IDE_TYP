@@ -108,12 +108,12 @@ public class Block : MonoBehaviour
         if (master)
         {
             // scale the fileWindow (if applicable)
-            Window3D fileWindow = transform.GetComponentInParent<Window3D>();
-            if (fileWindow != null)
+            Window3D editWindow = transform.GetComponentInParent<Window3D>();
+            if (editWindow != null)
             {
                 Vector2 scale = FontManager.lettersAndLinesToVector(getWidth(), getHeight());
-                fileWindow.setWidth(scale.x);
-                fileWindow.setHeight(scale.y);
+                editWindow.setWidth(scale.x);
+                editWindow.setHeight(scale.y);
             }
         }
     }

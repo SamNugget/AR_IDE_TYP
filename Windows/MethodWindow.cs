@@ -10,11 +10,14 @@ public class MethodWindow : EditWindow
 
     public MethodS methodSave
     {
+        get { return _methodSave; } // temp
         set
         {
             if (_methodSave == null)
             {
                 _methodSave = value;
+
+                setName(_methodSave.methodDeclaration.getSubBlock(3).getBlockText(false));
 
                 initialiseBlocks();
             }
@@ -33,9 +36,9 @@ public class MethodWindow : EditWindow
             masterBlock.initialise(_methodSave.methodBodyMasterS);
         else if (_methodSave.bodySaveBuffer != null)
             masterBlock.initialise(_methodSave.bodySaveBuffer);
-        else masterBlock.initialise(0);
+        else masterBlock.initialise(BlockManager.getBlockVariantIndex("Method Block"));
 
-        masterBlock.drawBlock(true);
+        masterBlock.drawBlock(false); // TODO: true so scale window
         masterBlock.setColliderEnabled(true, ActionManager.blocksEnabledDefault);
     }
 

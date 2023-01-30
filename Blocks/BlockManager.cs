@@ -20,6 +20,7 @@ public class BlockManager : MonoBehaviour
 
 
     // EDIT STATE
+    public static FileWindow lastFileWindow;
     private static Block _lastMaster;
     public static Block lastMaster
     {
@@ -31,15 +32,19 @@ public class BlockManager : MonoBehaviour
         {
             if (value == null) return;
 
+            // set last master
             _lastMaster = value;
+
+            // draw last master
             _lastMaster.drawBlock(true);
-            WindowManager.moveEditToolWindows();
+
+            FileWindow fW = _lastMaster.transform.GetComponentInParent<FileWindow>();
+            if (fW != null)
+            {
+                lastFileWindow = fW;
+                WindowManager.moveEditToolWindows();
+            }
         }
-    }
-    public static Window3D getLastWindow()
-    {
-        if (_lastMaster == null) return null;
-        return _lastMaster.GetComponentInParent<Window3D>();
     }
 
 
@@ -211,7 +216,7 @@ public class BlockManager : MonoBehaviour
             color = singleton.variableColor;
             splittableV = false;
             splittableH = false;
-            deleteable = true;
+            deleteable = false; // TODO: this needs to vary for dec and ref
 
             lines = new string[] { name };
 
@@ -288,7 +293,7 @@ public class BlockManager : MonoBehaviour
         foreach (KeyValuePair<int, BlockVariant> kvp in _customBlockVariants)
             if (kvp.Value.getName() == name) return kvp;
 
-        Debug.Log("Err, block variant " + name + " does not exist.");
+        Debug.Log("Block variant " + name + " does not exist.");
         return default(KeyValuePair<int, BlockVariant>);
     }
     public static int getNoOfBlockVariants()
@@ -466,6 +471,13 @@ public class BlockManager : MonoBehaviour
     [SerializeField] private Color variableColor;
     public static int createNameBlock(string name)
     {
+        BlockVariant bV = getBlockVariant(name);
+        if (bV != null)
+        {
+            if (_defaultBlockVariants.ContainsValue(bV)) return -1;
+            else return getBlockVariantIndex(bV);
+        }
+
         BlockVariant newVariant = new BlockVariant(name);
         nextKey++;
         _customBlockVariants.Add(nextKey, newVariant);

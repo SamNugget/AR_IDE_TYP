@@ -27,6 +27,11 @@ public class MethodS
     [NonSerialized] public BlockSave bodySaveBuffer;
     public void saveBodyToBuffer()
     {
+        if (methodBodyMaster == null)
+        {
+            Debug.Log("Err, trying to save null block tree to buffer.");
+            return;
+        }
         bodySaveBuffer = methodBodyMaster.saveBlock();
     }
 

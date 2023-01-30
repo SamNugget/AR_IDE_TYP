@@ -235,7 +235,6 @@ namespace ActionManagement
 
 
 
-            bool codeModified = true;
             // check for special types first
 
             // cycleable blocks go to next state
@@ -258,7 +257,7 @@ namespace ActionManagement
             {
                 BlockManager.lastMaster = master;
                 ActionManager.callAction(ActionManager.NAME_FIELD_OR_METHOD, clicked);
-                codeModified = false; // change is in next action
+                return; // change is in next action
             }
             else if (type == BlockManager.OPEN_METHOD)
             {
@@ -267,7 +266,7 @@ namespace ActionManagement
 
                 WindowManager.moveMethodWindow(fileWindow, declarationBlock);
 
-                codeModified = false; // opening file
+                return; // opening file
             }
 
 
@@ -281,19 +280,18 @@ namespace ActionManagement
             {
                 int variantIndex = BlockManager.getBlockVariantIndex(variant);
                 ActionManager.callAction(ActionManager.PLACE_SELECT, variantIndex);
-                codeModified = false; // just copying, no changes
+                return; // just copying, no changes
             }
             // try and place a block here
             else if (modeSymbol == ActionManager.PLACE_SELECT)
             {
                 ActionManager.callCurrentMode(data);
             }
-            else codeModified = false; // if dropped out, no changes
+            else return; // if dropped out, no changes
 
 
 
-            if (codeModified)
-                BlockManager.getLastWindow().setTitleTextMessage("*", false);
+            BlockManager.lastFileWindow.setTitleTextMessage("*", false);
         }
     }
 
@@ -528,13 +526,13 @@ namespace ActionManagement
             else if (blockName == "Place Field")
             {
                 b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Field"), clicked, false);
-                ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addField(b);
+                BlockManager.lastFileWindow.referenceTypeSave.addField(b);
                 emptyNameBlockIndex = 2;
             }
             else if (blockName == "Place Method")
             {
                 b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
-                ((FileWindow)BlockManager.getLastWindow()).referenceTypeSave.addMethod(b);
+                BlockManager.lastFileWindow.referenceTypeSave.addMethod(b);
                 emptyNameBlockIndex = 3;
             }
             else
@@ -551,7 +549,7 @@ namespace ActionManagement
 
 
             BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
-            BlockManager.getLastWindow().setTitleTextMessage("*", false);
+            BlockManager.lastFileWindow.setTitleTextMessage("*", false);
         }
 
         public override string getTextEntryWindowMessage()
@@ -588,7 +586,7 @@ namespace ActionManagement
                 BlockManager.spawnBlock(nameBlockIndex, beingReplaced, false);
 
                 BlockManager.lastMaster.setColliderEnabled(true, ActionManager.blocksEnabledForPlacing);
-                BlockManager.getLastWindow().setTitleTextMessage("*", false);
+                BlockManager.lastFileWindow.setTitleTextMessage("*", false);
             }
             else
             {
@@ -609,7 +607,7 @@ namespace ActionManagement
     {
         public void onCall(object data)
         {
-            ((FileWindow)BlockManager.getLastWindow()).saveFile();
+            BlockManager.lastFileWindow.saveFile();
         }
     }
 

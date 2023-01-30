@@ -169,14 +169,21 @@ public class WindowManager : MonoBehaviour
     {
         ActionManager.clearMode();
 
+        // find method save
         MethodS mS = fileWindow.referenceTypeSave.findMethodSave(declarationBlock);
+        if (mS == null)
+        {
+            Debug.Log("Err, could not find method save.");
+            return;
+        }
 
-        MethodWindow mW = (MethodWindow)replaceChildWindow(singleton.methodWindowFab, ref methodWS, (Window3D)fileWindow);
+        // create method window
+        MethodWindow mW = (MethodWindow)replaceSoleChildWindow<MethodWindow>(singleton.methodWindowFab, ref methodWS, (Window3D)fileWindow);
 
+        // pass method save into window
         mW.methodSave = mS;
-        mW.setName(declarationBlock.getSubBlock(3).getBlockText(false));
-
-        fileWindow.referenceTypeSave.addMethodBody(declarationBlock, mW.masterBlock);
+        // pass new method body block into file window
+        mS.methodBodyMaster = mW.masterBlock;
     }
 
 
@@ -186,8 +193,8 @@ public class WindowManager : MonoBehaviour
     private static WindowSettings blockWS = new WindowSettings(new Vector3(-0.15f, 0f, -0f));
     public static void moveEditToolWindows()
     {
-        replaceChildWindow<ToolsWindow>(singleton.toolsWindowFab, ref toolsWS);
-        replaceChildWindow<EditButtonManager>(singleton.blockSelectWindowFab, ref blockWS);
+        replaceChildSoleWindow<ToolsWindow>(singleton.toolsWindowFab, ref toolsWS);
+        replaceChildSoleWindow<EditButtonManager>(singleton.blockSelectWindowFab, ref blockWS);
     }
 
 
@@ -195,7 +202,7 @@ public class WindowManager : MonoBehaviour
     private static WindowSettings textEntryWS = new WindowSettings();
     public static Window3D spawnTextInputWindow(Window3D parent = null)
     {
-        return replaceChildWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
+        return replaceChildSoleWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
     }
 
 
@@ -253,12 +260,12 @@ public class WindowManager : MonoBehaviour
     }
 
     // finds the sole window with component T and changes the parent
-    private static Window3D replaceChildWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent = null)
+    private static Window3D replaceChildSoleWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent = null)
     {
         // get the last window being edited
         if (parent == null)
         {
-            parent = BlockManager.getLastWindow();
+            parent = (Window3D)BlockManager.lastFileWindow;
             if (parent == null) return null;
         }
 
@@ -287,15 +294,16 @@ public class WindowManager : MonoBehaviour
     }
 
     // finds the sole window (if exists) attached to parent, and moves it/spawns one
-    private static Window3D replaceChildWindow(GameObject windowFab, ref WindowSettings settings, Window3D parent)
+    private static Window3D replaceSoleChildWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent) where T : Window3D
     {
         Transform p = parent.transform.GetChild(0);
 
         // find the window
-        Window3D window = p.GetComponentInChildren<Window3D>();
+        T w = p.GetComponentInChildren<T>();
 
         // if window exists, close
-        if (window != null) window.close();
+        if (w != null)
+            ((Window3D)w).close();
 
         // spawn a new child window
         return spawnWindow(windowFab, settings, p);

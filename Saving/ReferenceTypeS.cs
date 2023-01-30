@@ -104,12 +104,6 @@ public class ReferenceTypeS
         methods.Remove(m);
     }
 
-    public void addMethodBody(Block methodDeclaration, Block methodBodyMaster)
-    {
-        MethodS m = findMethodSave(methodDeclaration);
-        if (m != null) m.methodBodyMaster = methodBodyMaster;
-    }
-
     public MethodS findMethodSave(Block b, bool dec = true)
     {
         foreach (MethodS m in methods)
