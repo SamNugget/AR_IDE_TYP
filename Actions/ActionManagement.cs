@@ -22,10 +22,10 @@ namespace ActionManagement
 
         // WINDOW STUFF
         public readonly static char OPEN_WORKSPACE = 'W';
+        public readonly static char CREATE_WORKSPACE = 'E';
         public readonly static char OPEN_FILE = 'F';
         public readonly static char CREATE_FILE = 'R';
         public readonly static char BACK_TO_WORKSPACES = 'B';
-        public readonly static char CYCLE_CONSTRUCT = 'Y';
 
 
 
@@ -157,6 +157,7 @@ namespace ActionManagement
             actions.Add(SAVE_CODE, new SaveCode());
 
             actions.Add(OPEN_WORKSPACE, new OpenWorkspace());
+            actions.Add(CREATE_WORKSPACE, new CreateWorkspace());
             actions.Add(OPEN_FILE, new OpenFile());
             actions.Add(CREATE_FILE, new CreateFile());
             actions.Add(BACK_TO_WORKSPACES, new BackToWorkspaces());
@@ -404,10 +405,11 @@ namespace ActionManagement
             if (!(data is Block)) return;
 
             Block block = (Block)data;
-            Block splitter = BlockManager.splitBlock(block.getParent());
+            Block toSplit = block.getParent();
+            Block splitter = BlockManager.splitBlock(toSplit);
 
             // if splitting method or field, insert new method/field line
-            string blockName = block.getBlockVariant().getName();
+            string blockName = toSplit.getBlockVariant().getName();
             if (blockName == "Field" || blockName == "Method")
                 BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(blockName), splitter.getSubBlock(1));
 
@@ -608,6 +610,9 @@ namespace ActionManagement
         public void onCall(object data)
         {
             BlockManager.lastFileWindow.saveFile();
+
+            // save custom blocks
+            FileManager.saveCustomBlockVariants();
         }
     }
 
@@ -618,8 +623,35 @@ namespace ActionManagement
         public void onCall(object data)
         {
             FileManager.loadWorkspace((string)data);
+
             Window3D filesWindow = WindowManager.spawnFilesWindow();
             filesWindow.setName((string)data);
+
+            // load custom blocks
+            BlockManager.loadCustomBlockVariants();
+        }
+    }
+
+
+
+    public class CreateWorkspace : NameCreator, Act
+    {
+        public void onCall(object data)
+        {
+            parent = WindowManager.getWindowWithComponent<WorkspacesButtonManager>();
+            ActionManager.callAction(ActionManager.CREATE_NAME, this);
+        }
+
+        public override void onFinishedNaming(bool success, string name)
+        {
+            if (!success) return;
+
+            ActionManager.callAction(ActionManager.OPEN_WORKSPACE, name);
+        }
+
+        public override string getTextEntryWindowMessage()
+        {
+            return "Name Workspace:";
         }
     }
 
@@ -657,7 +689,10 @@ namespace ActionManagement
             Window3D spawned = WindowManager.spawnFileWindow();
             ((FileWindow)spawned).referenceTypeSave = rTS;
 
-            // TODO: add to list in files window
+            // add to list in files window
+            Window3D filesWindow = WindowManager.getWindowWithComponent<ButtonManager3D>();
+            ButtonManager3D bM = filesWindow.GetComponent<ButtonManager3D>();
+            bM.respawnButtons();
         }
 
         public override string getTextEntryWindowMessage()

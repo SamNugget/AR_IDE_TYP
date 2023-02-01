@@ -10,8 +10,6 @@ public class EditButtonManager : ButtonManager2D
 {
     [SerializeField] private Transform blockButtonsParent;
 
-    // TODO: lists could be more dynamic, parent class could have add/remove button functions
-
     [SerializeField] private int variantsToExclude;
     private int totalVariants;
 
@@ -37,12 +35,12 @@ public class EditButtonManager : ButtonManager2D
             data[i] = variantIndex;
         }
 
-        distributeVertically(buttonLabels, actions, data, blockButtonsParent);
+        distributeFit(buttonLabels, actions, data, blockButtonsParent);
     }
 
     void Start()
     {
-        totalVariants = BlockManager.getNoOfBlockVariants();
+        totalVariants = BlockManager.getNoOfDefaultBlockVariants();
         base.Start();
     }
 }

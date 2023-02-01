@@ -38,12 +38,26 @@ public abstract class ButtonManager3D : MonoBehaviour
         Debug.Log("No button by the name of " + buttonLabel + " was found");
     }
 
+    protected void deleteButtons()
+    {
+        foreach (Transform child in gridObjectCollection.transform)
+            Destroy(child.gameObject);
+    }
+
+    public void respawnButtons()
+    {
+        deleteButtons();
+
+        createButtons();
+
+        gridObjectCollection.UpdateCollection();
+    }
+
     public void Start()
     {
         gridObjectCollection = GetComponentInChildren<GridObjectCollection>();
         if (gridObjectCollection == null) Debug.LogError("Err no grid object collection component");
         
-        createButtons();
-        gridObjectCollection.UpdateCollection();
+        respawnButtons();
     }
 }

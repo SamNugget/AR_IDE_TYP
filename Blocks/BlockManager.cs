@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ActionManagement;
+using FileManagement;
 
 public class BlockManager : MonoBehaviour
 {
@@ -144,6 +145,7 @@ public class BlockManager : MonoBehaviour
         [SerializeField] private bool splittableV;
         [SerializeField] private bool splittableH;
         [SerializeField] private bool deleteable;
+        [SerializeField] private bool editorOnly;
 
         // an array containing the text for each line in the block
         // '@BT' marks an input field, and is replaced in a Block instance
@@ -172,13 +174,11 @@ public class BlockManager : MonoBehaviour
             return sBTs;
         }
 
-        public Color getColor()
-        {
-            return new Color(color.r, color.g, color.b, color.a);
-        }
+        public Color getColor() { return new Color(color.r, color.g, color.b, color.a); }
         public bool getSplittableV() { return splittableV; }
         public bool getSplittableH() { return splittableH; }
         public bool getDeleteable() { return deleteable; }
+        public bool getEditorOnly() { return editorOnly; }
 
         // DEFAULT VALUES GET METHODS
         public string[] getLines()
@@ -223,6 +223,23 @@ public class BlockManager : MonoBehaviour
 
 
             calculateInstanceVariables();
+        }
+
+
+
+        public BlockVariant(BlockVariantS bVS)
+        {
+            name = bVS.name;
+            blockType = bVS.blockType;
+
+            float[] c = bVS.color;
+            color = new Color(c[0], c[1], c[2], c[3]);
+            splittableV = bVS.splittableV;
+            splittableH = bVS.splittableH;
+            deleteable = bVS.deleteable;
+            editorOnly = bVS.editorOnly;
+
+            lines = bVS.lines;
         }
 
 
@@ -296,9 +313,9 @@ public class BlockManager : MonoBehaviour
         Debug.Log("Block variant " + name + " does not exist.");
         return default(KeyValuePair<int, BlockVariant>);
     }
-    public static int getNoOfBlockVariants()
+    public static int getNoOfDefaultBlockVariants()
     {
-        return (_defaultBlockVariants.Count + _customBlockVariants.Count);
+        return _defaultBlockVariants.Count;
     }
 
 
@@ -485,6 +502,40 @@ public class BlockManager : MonoBehaviour
         return nextKey;
     }
 
+    // load custom block variants (if any)
+    // TODO: check this is workspace agnostic
+    public static void loadCustomBlockVariants()
+    {
+        _customBlockVariants = new Dictionary<int, BlockVariant>();
+
+
+
+        List<BlockVariantS> bVSs = FileManager.loadCustomBlockVariants();
+        if (bVSs == null)
+            nextKey = 100; // assumes <100 default blocks
+        else
+        {
+            foreach (BlockVariantS bVS in bVSs)
+            {
+                BlockVariant bV = new BlockVariant(bVS);
+                _customBlockVariants.Add(bVS.key, bV);
+                bV.calculateInstanceVariables();
+            }
+
+            // get highest key value
+            Dictionary<int, BlockVariant>.KeyCollection keys = _customBlockVariants.Keys;
+            int highest = -1;
+            foreach (int key in keys)
+                if (key > highest) highest = key;
+            nextKey = highest + 1;
+        }
+    }
+
+    public static Dictionary<int, BlockVariant> getCustomBlockVariants()
+    {
+        return _customBlockVariants;
+    }
+
 
 
 
@@ -528,27 +579,15 @@ public class BlockManager : MonoBehaviour
 
 
 
-        // create dictionaries
+        // create default dictionary, TODO: read it from file in assets
         _defaultBlockVariants = new Dictionary<int, BlockVariant>();
         for (int i = 0; i < blockVariants.Count; i++)
         {
-            BlockVariant bT = blockVariants[i];
-            _defaultBlockVariants.Add(i, bT);
+            BlockVariant bV = blockVariants[i];
+            _defaultBlockVariants.Add(i, bV);
             // initialise blockVariants
-            bT.calculateInstanceVariables();
+            bV.calculateInstanceVariables();
         }
-
-        // TODO: save/load custom block variants
-        _customBlockVariants = new Dictionary<int, BlockVariant>();
-
-        // get highest key value for any dictionary
-        Dictionary<int, BlockVariant>.KeyCollection keys = _customBlockVariants.Keys;
-        if (keys.Count == 0) keys = _defaultBlockVariants.Keys;
-        int highest = -1;
-        foreach (int key in keys)
-            if (key > highest) highest = key;
-
-        nextKey = highest + 1;
 
 
 

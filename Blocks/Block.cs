@@ -149,7 +149,9 @@ public class Block : MonoBehaviour
 
             if (recursive)
             {
-                lines[currentLine] = before + block.getBlockText(true) + after;
+                bool editorOnly = block.getBlockVariant().getEditorOnly();
+                string blockText = editorOnly ? "" : block.getBlockText(true);
+                lines[currentLine] = before + blockText + after;
             }
             else // create a blank area which subblocks[i] will be on top
             {
@@ -277,7 +279,7 @@ public class Block : MonoBehaviour
             subBlock.setSpecialChildBlock(variantIndex, enabled);
 
 
-        Vector3 localPos = new Vector3(0f, 0f, transform.localPosition.z * 2f);
+        Vector3 localPos = new Vector3(0f, 0f, -0.1f);
         if (variantIndex == BlockManager.getBlockVariantIndex("Insert Line"))
         {
             // conditions for insert line

@@ -8,30 +8,6 @@ namespace FileManagement
 {
     public static class FileManager
     {
-        /*public static string[] filePaths
-        {
-            get
-            {
-                string[] paths = new string[files.Length];
-                for (int i = 0; i < paths.Length; i++)
-                    paths[i] = files[i].path;
-
-                return paths;
-            }
-        }*/
-
-        /*private static Workspace[] files
-        {
-            get
-            {
-                if (_files == null) findWorkspaces();
-
-                Workspace[] files = new Workspace[_files.Count];
-                _files.Values.CopyTo(files, 0);
-                return files;
-            }
-        }*/
-
         public static string[] workspaceNames
         {
             get
@@ -49,20 +25,31 @@ namespace FileManagement
             get
             {
                 Dictionary<string, ReferenceTypeS>.KeyCollection keys = activeWorkspace._sourceFiles.Keys;
+
                 string[] names = new string[keys.Count];
                 keys.CopyTo(names, 0);
                 return names;
             }
         }
 
-
-
-        public static Workspace activeWorkspace = null;
-
-        public static ReferenceTypeS getSourceFile(string name)
+        public static string[] sourceFileTypes
         {
-            return activeWorkspace._sourceFiles[name];
+            get
+            {
+                Dictionary<string, ReferenceTypeS>.ValueCollection values = activeWorkspace._sourceFiles.Values;
+                
+                List<string> types = new List<string>();
+                foreach (ReferenceTypeS rTS in values)
+                    types.Add(rTS.isClass ? "Class" : "Interface");
+                return types.ToArray();
+            }
         }
+
+
+
+        private static bool prettyPrint = false;
+
+        private static Workspace activeWorkspace = null;
 
         public static void loadWorkspace(string name)
         {
@@ -72,10 +59,12 @@ namespace FileManagement
             if (activeWorkspace == null || activeWorkspace.path != workspacePath)
                 activeWorkspace = new Workspace(workspacePath);
         }
+        
 
-        public static ReferenceTypeS createSourceFile(string name)
+
+        public static ReferenceTypeS getSourceFile(string name)
         {
-            return activeWorkspace.createSourceFile(name);
+            return activeWorkspace._sourceFiles[name];
         }
 
         public static bool saveSourceFile(string name)
@@ -83,10 +72,29 @@ namespace FileManagement
             return activeWorkspace.saveSourceFile(name);
         }
 
+        public static ReferenceTypeS createSourceFile(string name)
+        {
+            return activeWorkspace.createSourceFile(name);
+        }
+
         public static bool saveAllFiles()
         {
             return activeWorkspace.saveAllFiles();
         }
+
+
+
+        public static List<BlockVariantS> loadCustomBlockVariants()
+        {
+            return activeWorkspace.loadCustomBlockVariants();
+        }
+
+        public static void saveCustomBlockVariants()
+        {
+            activeWorkspace.saveCustomBlockVariants();
+        }
+
+
 
         public class Workspace
         {
@@ -123,6 +131,8 @@ namespace FileManagement
                     }
                 }
             }
+
+
 
             public static ReferenceTypeS loadSourceFile(string path)
             {
@@ -167,15 +177,16 @@ namespace FileManagement
                     // save the source code
                     using (StreamWriter w = new StreamWriter(sourceFile.path + '/' + sourceFile.name + ".cs"))
                         w.WriteLine(sourceFile.getCode());
+                    // save the block structure
                     using (StreamWriter w = new StreamWriter(sourceFile.path + '/' + sourceFile.name + ".json"))
-                        w.WriteLine(JsonUtility.ToJson(sourceFile, true));
+                        w.WriteLine(JsonUtility.ToJson(sourceFile, prettyPrint));
 
                     return true;
                 }
                 catch (Exception e)
                 {
                     Debug.Log(e.StackTrace);
-                    Debug.Log("Issue converting " + name + " to json");
+                    Debug.Log("Issue saving source file " + name + '.');
                     return false;
                 }
             }
@@ -192,12 +203,54 @@ namespace FileManagement
                 _sourceFiles.Add(name, rTS);
                 return rTS;
             }
-            
+
             public bool saveAllFiles()
             {
                 foreach (string file in _sourceFiles.Keys)
                     if (!saveSourceFile(file)) return false;
                 return true;
+            }
+
+
+
+            public List<BlockVariantS> loadCustomBlockVariants()
+            {
+                string path = this.path + "/Workspace.json";
+                if (!File.Exists(path)) return null;
+
+                try
+                {
+                    using (StreamReader r = new StreamReader(path))
+                    {
+                        string json = r.ReadToEnd();
+                        WorkspaceS workspaceFile = JsonUtility.FromJson<WorkspaceS>(json);
+                        return workspaceFile.customBlockVariants;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("Issue with the formatting of text file " + path);
+                    return null;
+                }
+            }
+
+            public void saveCustomBlockVariants()
+            {
+                try
+                {
+                    // create a workspace save json
+                    WorkspaceS wS = new WorkspaceS();
+                    string json = JsonUtility.ToJson(wS, prettyPrint);
+
+                    // save the source code
+                    using (StreamWriter w = new StreamWriter(path + "/Workspace.json"))
+                        w.WriteLine(json);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e.StackTrace);
+                    Debug.Log("Issue converting Workspace to json");
+                }
             }
         }
     }

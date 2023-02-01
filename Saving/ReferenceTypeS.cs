@@ -15,6 +15,9 @@ public class ReferenceTypeS
     public string name;
     public bool isClass;
 
+    // bool opened
+    // float[] position
+
     public List<FieldS> fields;
     public List<MethodS> methods;
 
@@ -53,19 +56,18 @@ public class ReferenceTypeS
         {
             // fields
             foreach (FieldS f in fields)
-                code += f.getCode() + '\n';
+                code += f.getCode();
             code += '\n';
 
             // methods
             foreach (MethodS m in methods)
-                code += m.getCode(false) + "\n\n";
+                code += m.getCode(true) + '\n';
         }
         else // interface
         {
             // methods only
             foreach (MethodS m in methods)
                 code += m.getCode(false) + '\n';
-            code += '\n';
         }
 
         code += '}';

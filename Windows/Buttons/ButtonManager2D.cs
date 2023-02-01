@@ -11,31 +11,21 @@ public abstract class ButtonManager2D : MonoBehaviour
 
     [SerializeField] protected float buttonSpacing;
 
+    [SerializeField] private float maxWidth = 10;
+
 
 
     public abstract void distributeButtons();
 
     protected List<Transform> distributeVertically(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
     {
-        return distribute(buttonLabels, actions, data, parent);
-    }
-
-    protected List<Transform> distributeHorizontally(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
-    {
-        Debug.Log("Err, horizontal button placement was removed.");
-        return /*distribute(buttonLabels, actions, data, parent)*/null;
-    }
-
-    private List<Transform> distribute(string[] buttonLabels, char[] actions, object[] data, Transform parent)
-    {
         if (buttonLabels.Length != actions.Length || buttonLabels.Length != data.Length)
         {
             Debug.Log("All three input parameter arrays must be the same length.");
             return null;
         }
-
-
         if (parent == null) parent = transform;
+
 
 
         List<Transform> buttons = new List<Transform>();
@@ -44,11 +34,44 @@ public abstract class ButtonManager2D : MonoBehaviour
             Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], i, parent);
             buttons.Add(newButton);
         }
-
         return buttons;
     }
 
-    protected Transform spawnButton(string buttonLabel, char action, object data, int row, Transform parent)
+    protected List<Transform> distributeFit(string[] buttonLabels, char[] actions, object[] data, Transform parent = null)
+    {
+        if (buttonLabels.Length != actions.Length || buttonLabels.Length != data.Length)
+        {
+            Debug.Log("All three input parameter arrays must be the same length.");
+            return null;
+        }
+        if (parent == null) parent = transform;
+
+
+
+        List<Transform> buttons = new List<Transform>();
+        int row = 0;
+        float rowWidth = 0;
+        for (int i = 0; i < buttonLabels.Length; i++)
+        {
+            float width = buttonLabels[i].Length + (buttonSpacing / FontManager.horizontalAdvance);
+            if (rowWidth != 0f && rowWidth + width > maxWidth)
+            {
+                row++;
+                rowWidth = 0f;
+            }
+
+            // create button
+            float xPos = FontManager.horizontalAdvance * rowWidth;
+            Debug.Log("label: " + buttonLabels[i] + ", row: " + row + ", rowW: " + rowWidth);
+            Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], row, parent, xPos);
+            buttons.Add(newButton);
+
+            rowWidth += width;
+        }
+        return buttons;
+    }
+
+    protected Transform spawnButton(string buttonLabel, char action, object data, int row, Transform parent, float xPos = 0f)
     {
         Vector2 planeSize = FontManager.lettersAndLinesToVector(buttonLabel.Length, 1);
         float width = planeSize.x;
@@ -57,7 +80,7 @@ public abstract class ButtonManager2D : MonoBehaviour
 
         // spawn, position and scale button
         Transform newButton = Instantiate(buttonFab, parent).GetComponent<Transform>();
-        newButton.localPosition = new Vector3(0f, (row * (-height - buttonSpacing) * s), 0f);
+        newButton.localPosition = new Vector3(xPos * s, (row * (-height - buttonSpacing) * s), 0f);
         newButton.localScale = new Vector3(s, s, s);
 
         // scale body plane

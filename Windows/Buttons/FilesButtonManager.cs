@@ -9,9 +9,10 @@ public class FilesButtonManager : ButtonManager3D
     public override void createButtons()
     {
         string[] files = FileManager.sourceFileNames;
+        string[] types = FileManager.sourceFileTypes;
 
-        foreach (string file in files)
-            spawnButton(file, ActionManager.OPEN_FILE, file, "IconClass");
+        for (int i = 0; i < files.Length; i++)
+            spawnButton(files[i], ActionManager.OPEN_FILE, files[i], "Icon" + types[i]);
 
         spawnButton("CREATE NEW", ActionManager.CREATE_FILE, null, "IconAdd");
     }

@@ -41,7 +41,6 @@ public class MethodS
             return null;
 
         string result = methodDeclaration.getBlockText(true);
-
         if (body)
         {
             string bodyText = "";
@@ -59,7 +58,7 @@ public class MethodS
         }
         else
         {
-            result += ';';
+            result += ";\n";
         }
 
         return result;
