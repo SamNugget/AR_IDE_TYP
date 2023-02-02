@@ -17,11 +17,11 @@ public class WindowManager : MonoBehaviour
 
 
 
-    private static List<Window3D> windows = new List<Window3D>();
+    private static List<Window> windows = new List<Window>();
 
-    public static Window3D getWindowWithComponent<T>()
+    public static Window getWindowWithComponent<T>()
     {
-        foreach (Window3D window in windows)
+        foreach (Window window in windows)
         {
             // check at top level
             Transform w = window.transform;
@@ -37,11 +37,11 @@ public class WindowManager : MonoBehaviour
         return null;
     }
 
-    public static List<Window3D> getWindowsWithComponent<T>()
+    public static List<Window> getWindowsWithComponent<T>()
     {
-        List<Window3D> found = new List<Window3D>();
+        List<Window> found = new List<Window>();
 
-        foreach (Window3D window in windows)
+        foreach (Window window in windows)
         {
             // check at top level
             Transform w = window.transform;
@@ -66,22 +66,22 @@ public class WindowManager : MonoBehaviour
 
     public static void updateEditWindowColliders(bool enabled, List<string> mask = null, bool invert = false)
     {
-        List<Window3D> blockWindows = getWindowsWithComponent<EditWindow>();
-        foreach (Window3D w in blockWindows)
+        List<Window> blockWindows = getWindowsWithComponent<EditWindow>();
+        foreach (Window w in blockWindows)
             ((EditWindow)w).masterBlock.setColliderEnabled(enabled, mask, invert);
     }
 
     public static void updateEditWindowSpecialBlocks(int variantIndex, bool enabled) // e.g., for insert line
     {
-        List<Window3D> blockWindows = getWindowsWithComponent<EditWindow>();
-        foreach (Window3D w in blockWindows)
+        List<Window> blockWindows = getWindowsWithComponent<EditWindow>();
+        foreach (Window w in blockWindows)
             ((EditWindow)w).masterBlock.setSpecialChildBlock(variantIndex, enabled);
     }
 
     public static void enableEditWindowLeafBlocks() // for deletion of blocks
     {
-        List<Window3D> blockWindows = getWindowsWithComponent<EditWindow>();
-        foreach (Window3D w in blockWindows)
+        List<Window> blockWindows = getWindowsWithComponent<EditWindow>();
+        foreach (Window w in blockWindows)
             ((EditWindow)w).masterBlock.enableLeafBlocks();
     }
 
@@ -107,14 +107,14 @@ public class WindowManager : MonoBehaviour
             rotation = Quaternion.identity;
         }
 
-        public WindowSettings(Window3D window)
+        public WindowSettings(Window window)
         {
             Transform w = window.transform;
             position = w.localPosition;
             rotation = w.localRotation;
         }
 
-        public void copyTo(Window3D window)
+        public void copyTo(Window window)
         {
             if (window == null) return;
             window.transform.localPosition = position;
@@ -130,36 +130,38 @@ public class WindowManager : MonoBehaviour
     public static void spawnWorkspacesWindow()
     {
         // replace the files window with a workspace window
-        Window3D filesWindow = getWindowWithComponent<FilesWindow>();
-        swapWindows(filesWindow, singleton.workspacesWindowFab);
+        Window workspaceWindow = getWindowWithComponent<WorkspaceWindow>();
+        swapWindows(workspaceWindow, singleton.workspacesWindowFab);
 
         singleton.fileWindowParent.gameObject.SetActive(false);
     }
 
 
-    [SerializeField] private GameObject filesWindowFab;
-    public static Window3D spawnFilesWindow()
+    [SerializeField] private GameObject workspaceWindowFab;
+    public static Window spawnWorkspaceWindow()
     {
         // replace the workspace window with a files window
-        Window3D workspacesWindow = getWindowWithComponent<WorkspacesButtonManager>();
-        Window3D filesWindow = swapWindows(workspacesWindow, singleton.filesWindowFab);
+        Window workspacesWindow = getWindowWithComponent<WorkspacesButtonManager>();
+        Window workspaceWindow = swapWindows(workspacesWindow, singleton.workspaceWindowFab);
 
         singleton.fileWindowParent.gameObject.SetActive(true);
 
-        return filesWindow;
+        return workspaceWindow;
     }
 
 
-    [SerializeField] private GameObject fileWindowFab;
-    public static Window3D spawnFileWindow()
+    [SerializeField] private GameObject classWindowFab;
+    [SerializeField] private GameObject interfaceWindowFab;
+    public static Window spawnFileWindow(bool isClass)
     {
         ActionManager.clearMode();
 
         // find the workspaces window and get attributes
-        Window3D filesWindow = getWindowWithComponent<FilesWindow>();
+        Window filesWindow = getWindowWithComponent<WorkspaceWindow>();
 
         // spawn new window with attributes of old window
-        return spawnWindow(singleton.fileWindowFab, new Vector3(0f, 0f, -0.1f), filesWindow.transform.GetChild(0), singleton.fileWindowParent);
+        GameObject fab = isClass ? singleton.classWindowFab : singleton.interfaceWindowFab;
+        return spawnWindow(fab, new Vector3(0f, 0f, -0.1f), filesWindow.transform.GetChild(0), singleton.fileWindowParent);
     }
 
 
@@ -178,7 +180,7 @@ public class WindowManager : MonoBehaviour
         }
 
         // create method window
-        MethodWindow mW = (MethodWindow)replaceSoleChildWindow<MethodWindow>(singleton.methodWindowFab, ref methodWS, (Window3D)fileWindow);
+        MethodWindow mW = (MethodWindow)replaceSoleChildWindow<MethodWindow>(singleton.methodWindowFab, ref methodWS, (Window)fileWindow);
 
         // pass method save into window
         mW.methodSave = mS;
@@ -200,7 +202,7 @@ public class WindowManager : MonoBehaviour
 
     [SerializeField] private GameObject textEntryWindowFab;
     private static WindowSettings textEntryWS = new WindowSettings();
-    public static Window3D spawnTextInputWindow(Window3D parent = null)
+    public static Window spawnTextInputWindow(Window parent = null)
     {
         return replaceChildSoleWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
     }
@@ -210,7 +212,7 @@ public class WindowManager : MonoBehaviour
 
 
     // old method to be superseded
-    private static Window3D spawnWindow(GameObject prefab, Vector3 offset, Transform toCopy = null, Transform parentOverride = null)
+    private static Window spawnWindow(GameObject prefab, Vector3 offset, Transform toCopy = null, Transform parentOverride = null)
     {
         if (parentOverride == null)
             parentOverride = singleton.transform;
@@ -225,33 +227,33 @@ public class WindowManager : MonoBehaviour
             newWindow.localRotation = toCopy.localRotation;
         }
 
-        Window3D w = newWindow.parent.GetComponent<Window3D>();
-        if (w == null) Debug.Log("No Window3D component on window.");
+        Window w = newWindow.parent.GetComponent<Window>();
+        if (w == null) Debug.Log("No Window component on window.");
         else windows.Add(w);
 
         return w;
     }
 
-    private static Window3D spawnWindow(GameObject prefab, WindowSettings settings, Transform parent)
+    private static Window spawnWindow(GameObject prefab, WindowSettings settings, Transform parent)
     {
         Transform spawned = Instantiate(prefab, parent).transform;
         spawned.localPosition = settings.position;
         spawned.localRotation = settings.rotation;
 
-        Window3D w = spawned.GetComponent<Window3D>();
-        if (w == null) Debug.Log("No Window3D component on window.");
+        Window w = spawned.GetComponent<Window>();
+        if (w == null) Debug.Log("No Window component on window.");
         else windows.Add(w);
 
         return w;
     }
 
-    private static Window3D swapWindows(Window3D existingWindow, GameObject newWindowFab)
+    private static Window swapWindows(Window existingWindow, GameObject newWindowFab)
     {
         // find the workspaces window and get attributes
         bool isFollowing = existingWindow.GetComponentInChildren<RadialView>().enabled;
 
         // spawn new window with attributes of old window
-        Window3D newWindow = spawnWindow(newWindowFab, Vector3.zero, existingWindow.transform.GetChild(0));
+        Window newWindow = spawnWindow(newWindowFab, Vector3.zero, existingWindow.transform.GetChild(0));
         newWindow.GetComponentInChildren<RadialView>().enabled = isFollowing;
 
         existingWindow.close();
@@ -260,18 +262,18 @@ public class WindowManager : MonoBehaviour
     }
 
     // finds the sole window with component T and changes the parent
-    private static Window3D replaceChildSoleWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent = null)
+    private static Window replaceChildSoleWindow<T>(GameObject windowFab, ref WindowSettings settings, Window parent = null)
     {
         // get the last window being edited
         if (parent == null)
         {
-            parent = (Window3D)BlockManager.lastFileWindow;
+            parent = (Window)BlockManager.lastFileWindow;
             if (parent == null) return null;
         }
 
 
         // find the window
-        Window3D window = getWindowWithComponent<T>();
+        Window window = getWindowWithComponent<T>();
 
 
         Transform lET = parent.transform.GetChild(0);
@@ -294,7 +296,7 @@ public class WindowManager : MonoBehaviour
     }
 
     // finds the sole window (if exists) attached to parent, and moves it/spawns one
-    private static Window3D replaceSoleChildWindow<T>(GameObject windowFab, ref WindowSettings settings, Window3D parent) where T : Window3D
+    private static Window replaceSoleChildWindow<T>(GameObject windowFab, ref WindowSettings settings, Window parent) where T : Window
     {
         Transform p = parent.transform.GetChild(0);
 
@@ -303,13 +305,13 @@ public class WindowManager : MonoBehaviour
 
         // if window exists, close
         if (w != null)
-            ((Window3D)w).close();
+            ((Window)w).close();
 
         // spawn a new child window
         return spawnWindow(windowFab, settings, p);
     }
 
-    public static void destroyWindow(Window3D window)
+    public static void destroyWindow(Window window)
     {
         // this is not very elegant
         if (window is ToolsWindow)
@@ -327,15 +329,11 @@ public class WindowManager : MonoBehaviour
         Destroy(window.gameObject);
     }
 
-
-
-
-
-    public static void stopAllFollowing(Window3D caller)
+    /*public static void stopAllFollowing(Window caller)
     {
-        foreach (Window3D w in windows)
+        foreach (Window w in windows)
             if (w != caller) w.stopFollowing();
-    }
+    }*/
 
 
 

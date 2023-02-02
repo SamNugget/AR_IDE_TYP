@@ -38,8 +38,10 @@ public class Window : MonoBehaviour
     [SerializeField] private float minWidth = 0.3f;
     [SerializeField] private float minHeight = 0.3f;
 
-    protected void scaleWindow(float width, float height)
+    public void scaleWindow(float width, float height)
     {
+        if (topBarEnabled) height += topBarHeight;
+
         if (width < minWidth) width = minWidth;
         if (height < minHeight) height = minHeight;
         this.width = width;
@@ -70,7 +72,7 @@ public class Window : MonoBehaviour
     // simple
     [SerializeField] private Transform simpleParent;
     [SerializeField] private Transform simpleCube;
-    [SerializeField] private RectTransform simpleText;
+    [SerializeField] protected RectTransform simpleText;
     [SerializeField] private Transform linkers;
     // -buttons
     [SerializeField] private Transform detailButton;
@@ -79,7 +81,7 @@ public class Window : MonoBehaviour
     [SerializeField] private Transform topBar;
     [SerializeField] private RectTransform topText;
     [SerializeField] private Transform backplate;
-    [SerializeField] private Transform contentParent;
+    [SerializeField] protected Transform contentParent;
     // -buttons
     [SerializeField] private Transform backButton;
     [SerializeField] private Transform closeButton;
@@ -158,7 +160,7 @@ public class Window : MonoBehaviour
 
     public virtual void close()
     {
-        //WindowManager.destroyWindow(this);
+        WindowManager.destroyWindow(this);
     }
 
 
@@ -173,10 +175,5 @@ public class Window : MonoBehaviour
         backButton.gameObject.SetActive(backButtonEnabled);
         closeButton.gameObject.SetActive(closeButtonEnabled);
         simpleButton.gameObject.SetActive(simpleButtonEnabled);
-    }
-
-    void Update()
-    {
-        updateVisuals();
     }
 }

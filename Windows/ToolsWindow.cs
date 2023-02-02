@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ActionManagement;
 
-public class ToolsWindow : Window3D
+public class ToolsWindow : Window
 {
     [SerializeField] private ActionButton placeButton;
     [SerializeField] private ActionButton deleteButton;

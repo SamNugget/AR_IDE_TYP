@@ -4,7 +4,7 @@ using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using ActionManagement;
 
-public class TextEntryWindow : Window3D
+public class TextEntryWindow : Window
 {
     [SerializeField] private MRTKTMPInputField inputField;
     private char action;

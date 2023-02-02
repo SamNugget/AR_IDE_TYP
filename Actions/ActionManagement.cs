@@ -107,7 +107,7 @@ namespace ActionManagement
 
 
             // set message on toolsWindow
-            Window3D toolsWindow = WindowManager.getWindowWithComponent<ToolsWindow>();
+            Window toolsWindow = WindowManager.getWindowWithComponent<ToolsWindow>();
             if (toolsWindow != null)
                 toolsWindow.setTitleTextMessage(toolsWindowMessage, toolsWindowMessage != "");
         }
@@ -443,7 +443,7 @@ namespace ActionManagement
 
     public class CreateName : Mode
     {
-        private Window3D textEntryWindow;
+        private Window textEntryWindow;
         private NameCreator nameCreator;
 
         public override void onCall(object data)
@@ -489,7 +489,7 @@ namespace ActionManagement
 
     public abstract class NameCreator
     {
-        public Window3D parent = null;
+        public Window parent = null;
 
         public abstract void onFinishedNaming(bool success, string name);
         public abstract string getTextEntryWindowMessage();
@@ -624,7 +624,7 @@ namespace ActionManagement
         {
             FileManager.loadWorkspace((string)data);
 
-            Window3D filesWindow = WindowManager.spawnFilesWindow();
+            Window filesWindow = WindowManager.spawnWorkspaceWindow();
             filesWindow.setName((string)data);
 
             // load custom blocks
@@ -662,10 +662,10 @@ namespace ActionManagement
         public void onCall(object data)
         {
             ReferenceTypeS rTS = FileManager.getSourceFile((string)data);
-            Window3D spawned = WindowManager.spawnFileWindow();
+            Window spawned = WindowManager.spawnFileWindow(rTS.isClass);
             ((FileWindow)spawned).referenceTypeSave = rTS;
 
-            // TODO: remove from list in files window
+            // TODO: toggle in list in files window
         }
     }
 
@@ -673,9 +673,11 @@ namespace ActionManagement
 
     public class CreateFile : NameCreator, Act
     {
+        bool isClass;
         public void onCall(object data)
         {
-            parent = WindowManager.getWindowWithComponent<FilesWindow>();
+            isClass = (bool)data;
+            parent = WindowManager.getWindowWithComponent<WorkspaceWindow>();
             ActionManager.callAction(ActionManager.CREATE_NAME, this);
         }
 
@@ -686,18 +688,18 @@ namespace ActionManagement
             ReferenceTypeS rTS = FileManager.createSourceFile(name);
             if (rTS == null) return;
 
-            Window3D spawned = WindowManager.spawnFileWindow();
+            Window spawned = WindowManager.spawnFileWindow(isClass);
             ((FileWindow)spawned).referenceTypeSave = rTS;
 
             // add to list in files window
-            Window3D filesWindow = WindowManager.getWindowWithComponent<ButtonManager3D>();
+            Window filesWindow = WindowManager.getWindowWithComponent<ButtonManager3D>();
             ButtonManager3D bM = filesWindow.GetComponent<ButtonManager3D>();
             bM.respawnButtons();
         }
 
         public override string getTextEntryWindowMessage()
         {
-            return "Name File:";
+            return "Name " + (isClass ? "Class" : "Interface") + ':';
         }
     }
 
