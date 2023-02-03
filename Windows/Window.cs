@@ -70,18 +70,14 @@ public class Window : MonoBehaviour
     [SerializeField] public Material defaultMat;
 
     // simple
-    [SerializeField] private Transform simpleParent;
-    [SerializeField] private Transform simpleCube;
-    [SerializeField] protected RectTransform simpleText;
-    [SerializeField] private Transform linkers;
+    private Transform simpleParent;
+    protected RectTransform simpleText;
     // -buttons
     [SerializeField] private Transform detailButton;
     // detailed
-    [SerializeField] private Transform detailedParent;
-    [SerializeField] private Transform topBar;
-    [SerializeField] private RectTransform topText;
-    [SerializeField] private Transform backplate;
-    [SerializeField] protected Transform contentParent;
+    private Transform detailedParent;
+    private RectTransform topText;
+    protected Transform contentParent;
     // -buttons
     [SerializeField] private Transform backButton;
     [SerializeField] private Transform closeButton;
@@ -100,6 +96,9 @@ public class Window : MonoBehaviour
         BoxCollider boxCollider = GetComponent<BoxCollider>();
         if (simpleView)
         {
+            Transform simpleCube = simpleParent.Find("SimpleCube");
+            Transform linkers = simpleParent.Find("Linkers");
+
             // boxCollider
             boxCollider.center = new Vector2(width/2f, -height/2f);
             boxCollider.size = new Vector3(width, height, 0.03f);
@@ -120,6 +119,9 @@ public class Window : MonoBehaviour
         }
         else
         {
+            Transform topBar = detailedParent.Find("TopBar");
+            Transform backplate = detailedParent.Find("Backplate");
+
             // top bar
             topBar.gameObject.SetActive(topBarEnabled);
             topText.gameObject.SetActive(topBarEnabled);
@@ -150,8 +152,8 @@ public class Window : MonoBehaviour
 
     protected void updateMaterial(Material mat)
     {
-        simpleCube.GetComponentInChildren<Renderer>().material = mat;
-        topBar.GetComponentInChildren<Renderer>().material = mat;
+        simpleParent.Find("SimpleCube").GetComponentInChildren<Renderer>().material = mat;
+        detailedParent.Find("TopBar").GetComponentInChildren<Renderer>().material = mat;
     }
 
 
@@ -167,13 +169,21 @@ public class Window : MonoBehaviour
 
 
 
-    void Start()
+    void Awake()
     {
-        scaleWindow(width, height);
-        if (defaultMat != null) updateMaterial(defaultMat);
+        simpleParent = transform.Find("Simple");
+        simpleText = (RectTransform)simpleParent.Find("SimpleText");
+
+        detailedParent = transform.Find("Detailed");
+        topText = (RectTransform)detailedParent.Find("TopText");
+        contentParent = detailedParent.Find("Content");
 
         backButton.gameObject.SetActive(backButtonEnabled);
         closeButton.gameObject.SetActive(closeButtonEnabled);
         simpleButton.gameObject.SetActive(simpleButtonEnabled);
+
+        scaleWindow(width, height);
+        if (defaultMat != null) updateMaterial(defaultMat);
+        if (name != "") setName(name);
     }
 }

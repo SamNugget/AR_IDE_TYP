@@ -27,12 +27,6 @@ public class WindowManager : MonoBehaviour
             Transform w = window.transform;
             if (w.GetComponent<T>() != null)
                 return window;
-            // check children
-            foreach (Transform child in w)
-            {
-                if (child.GetComponent<T>() != null)
-                    return window;
-            }
         }
         return null;
     }
@@ -161,7 +155,7 @@ public class WindowManager : MonoBehaviour
 
         // spawn new window with attributes of old window
         GameObject fab = isClass ? singleton.classWindowFab : singleton.interfaceWindowFab;
-        return spawnWindow(fab, new Vector3(0f, 0f, -0.1f), filesWindow.transform.GetChild(0), singleton.fileWindowParent);
+        return spawnWindow(fab, new Vector3(0f, 0f, -0.1f), filesWindow.transform, singleton.fileWindowParent);
     }
 
 
@@ -190,9 +184,9 @@ public class WindowManager : MonoBehaviour
 
 
     [SerializeField] private GameObject toolsWindowFab;
-    private static WindowSettings toolsWS = new WindowSettings(new Vector3(0f, -0.15f, -0.01f));
+    private static WindowSettings toolsWS = new WindowSettings(new Vector3(-0.31f, -0.2f, -0.01f));
     [SerializeField] private GameObject blockSelectWindowFab;
-    private static WindowSettings blockWS = new WindowSettings(new Vector3(-0.15f, 0f, 0f));
+    private static WindowSettings blockWS = new WindowSettings(new Vector3(-0.31f, 0f, 0f));
     public static void moveEditToolWindows()
     {
         replaceChildSoleWindow<ToolsWindow>(singleton.toolsWindowFab, ref toolsWS);
@@ -216,7 +210,7 @@ public class WindowManager : MonoBehaviour
     {
         if (parentOverride == null)
             parentOverride = singleton.transform;
-        Transform newWindow = Instantiate(prefab, parentOverride).transform.GetChild(0);
+        Transform newWindow = Instantiate(prefab, parentOverride).transform;
 
         if (toCopy == null)
             newWindow.localPosition = offset;
@@ -227,7 +221,7 @@ public class WindowManager : MonoBehaviour
             newWindow.localRotation = toCopy.localRotation;
         }
 
-        Window w = newWindow.parent.GetComponent<Window>();
+        Window w = newWindow.GetComponent<Window>();
         if (w == null) Debug.Log("No Window component on window.");
         else windows.Add(w);
 
@@ -249,12 +243,8 @@ public class WindowManager : MonoBehaviour
 
     private static Window swapWindows(Window existingWindow, GameObject newWindowFab)
     {
-        // find the workspaces window and get attributes
-        bool isFollowing = existingWindow.GetComponentInChildren<RadialView>().enabled;
-
         // spawn new window with attributes of old window
-        Window newWindow = spawnWindow(newWindowFab, Vector3.zero, existingWindow.transform.GetChild(0));
-        newWindow.GetComponentInChildren<RadialView>().enabled = isFollowing;
+        Window newWindow = spawnWindow(newWindowFab, Vector3.zero, existingWindow.transform);
 
         existingWindow.close();
 
@@ -276,7 +266,7 @@ public class WindowManager : MonoBehaviour
         Window window = getWindowWithComponent<T>();
 
 
-        Transform lET = parent.transform.GetChild(0);
+        Transform lET = parent.transform;
         // if it doesn't exist, spawn
         if (window == null)
             window = spawnWindow(windowFab, settings, lET);
@@ -298,7 +288,7 @@ public class WindowManager : MonoBehaviour
     // finds the sole window (if exists) attached to parent, and moves it/spawns one
     private static Window replaceSoleChildWindow<T>(GameObject windowFab, ref WindowSettings settings, Window parent) where T : Window
     {
-        Transform p = parent.transform.GetChild(0);
+        Transform p = parent.transform;
 
         // find the window
         T w = p.GetComponentInChildren<T>();
@@ -343,7 +333,6 @@ public class WindowManager : MonoBehaviour
     {
         singleton = this;
 
-        GameObject workspacesWindow = spawnWindow(workspacesWindowFab, new Vector3(0f, 0f, 1f)).gameObject;
-        workspacesWindow.GetComponentInChildren<RadialView>().enabled = true;
+        spawnWindow(workspacesWindowFab, new Vector3(0f, 0f, 1f));
     }
 }

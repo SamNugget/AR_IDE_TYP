@@ -112,6 +112,7 @@ public class Block : MonoBehaviour
             if (editWindow != null)
             {
                 Vector2 scale = FontManager.lettersAndLinesToVector(getWidth(), getHeight());
+                scale *= WindowManager.blockScale;
                 editWindow.scaleWindow(scale.x, scale.y);
             }
         }

@@ -17,7 +17,7 @@ public abstract class FileWindow : EditWindow
             {
                 _referenceTypeSave = value;
 
-                setName(_referenceTypeSave.isClass ? "<u>C</u> " : "<u>I</u> " + _referenceTypeSave.name);
+                setName((_referenceTypeSave.isClass ? "<u>C</u> " : "<u>I</u> ") + _referenceTypeSave.name);
 
                 initialiseBlocks();
             }
@@ -42,6 +42,6 @@ public abstract class FileWindow : EditWindow
 
     protected override void setSimpleText()
     {
-        simpleText.GetComponent<TextMeshPro>().text = _referenceTypeSave.isClass ? "<u>Class</u>\n" : "<u>Interface</u>\n" + name;
+        simpleText.GetComponent<TextMeshPro>().text = (_referenceTypeSave.isClass ? "<u>Class</u>\n" : "<u>Interface</u>\n") + _referenceTypeSave.name;
     }
 }

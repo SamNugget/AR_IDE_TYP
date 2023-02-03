@@ -1,13 +1,9 @@
-using UnityEngine;
 using ActionManagement;
 
 public class WorkspaceWindow : Window
 {
-    [SerializeField] private ActionButton backAButton;
-
-    void Start()
+    public void back()
     {
-        // TODO: move to Window class
-        backAButton.setAction(ActionManager.BACK_TO_WORKSPACES);
+        ActionManager.callAction(ActionManager.BACK_TO_WORKSPACES, null);
     }
 }

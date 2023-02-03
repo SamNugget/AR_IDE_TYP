@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using ActionManagement;
+using TMPro;
 
 public class TextEntryWindow : Window
 {
-    [SerializeField] private MRTKTMPInputField inputField;
-    private char action;
+    [SerializeField] private TMP_InputField inputField;
 
     public void onEndEdit()
     {
@@ -31,10 +30,5 @@ public class TextEntryWindow : Window
     {
         ActionManager.clearMode();
         base.close();
-    }
-
-    void Start()
-    {
-        action = ActionManager.CREATE_NAME;
     }
 }

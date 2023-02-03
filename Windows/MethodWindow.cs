@@ -27,7 +27,7 @@ public class MethodWindow : EditWindow
     private void initialiseBlocks()
     {
         // create the master block
-        masterBlock = Instantiate(BlockManager.blockFab, transform).transform.GetComponent<Block>();
+        masterBlock = Instantiate(BlockManager.blockFab, contentParent).transform.GetComponent<Block>();
         float s = WindowManager.blockScale;
         masterBlock.transform.localScale = new Vector3(s, s, s);
 
