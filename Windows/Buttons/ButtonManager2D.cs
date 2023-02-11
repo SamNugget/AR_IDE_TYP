@@ -62,7 +62,7 @@ public abstract class ButtonManager2D : MonoBehaviour
 
             // create button
             float xPos = FontManager.horizontalAdvance * rowWidth;
-            Debug.Log("label: " + buttonLabels[i] + ", row: " + row + ", rowW: " + rowWidth);
+            //Debug.Log("label: " + buttonLabels[i] + ", row: " + row + ", rowW: " + rowWidth);
             Transform newButton = spawnButton(buttonLabels[i], actions[i], data[i], row, parent, xPos);
             buttons.Add(newButton);
 

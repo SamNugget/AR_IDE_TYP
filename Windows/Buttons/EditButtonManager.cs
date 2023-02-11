@@ -10,7 +10,7 @@ public class EditButtonManager : ButtonManager2D
 {
     [SerializeField] private Transform blockButtonsParent;
 
-    [SerializeField] private int variantsToExclude;
+    [SerializeField] private int placeableVariants;
     private int totalVariants;
 
     public override void distributeButtons()
@@ -19,7 +19,7 @@ public class EditButtonManager : ButtonManager2D
 
 
 
-        int noOfButtons = totalVariants - variantsToExclude;
+        int noOfButtons = placeableVariants;
 
         string[] buttonLabels = new string[noOfButtons];
         char[] actions = new char[noOfButtons];
@@ -27,7 +27,7 @@ public class EditButtonManager : ButtonManager2D
 
         for (int i = 0; i < noOfButtons; i++)
         {
-            int variantIndex = i + variantsToExclude;
+            int variantIndex = i + (totalVariants - placeableVariants);
 
             BlockManager.BlockVariant bV = BlockManager.getBlockVariant(variantIndex);
             buttonLabels[i] = bV.getName();

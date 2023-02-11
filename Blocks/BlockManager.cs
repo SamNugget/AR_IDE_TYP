@@ -43,7 +43,7 @@ public class BlockManager : MonoBehaviour
             if (fW != null)
             {
                 lastFileWindow = fW;
-                WindowManager.moveEditToolWindows();
+                if (!fW.simpleView) WindowManager.moveEditToolWindows();
             }
         }
     }
@@ -511,9 +511,9 @@ public class BlockManager : MonoBehaviour
 
 
         List<BlockVariantS> bVSs = FileManager.loadCustomBlockVariants();
-        if (bVSs == null)
-            nextKey = 100; // assumes <100 default blocks
-        else
+        nextKey = 100; // assumes <100 default blocks
+
+        if (bVSs != null)
         {
             foreach (BlockVariantS bVS in bVSs)
             {
@@ -524,44 +524,15 @@ public class BlockManager : MonoBehaviour
 
             // get highest key value
             Dictionary<int, BlockVariant>.KeyCollection keys = _customBlockVariants.Keys;
-            int highest = -1;
             foreach (int key in keys)
-                if (key > highest) highest = key;
-            nextKey = highest + 1;
+                if (key > nextKey)
+                    nextKey = key;
         }
     }
 
     public static Dictionary<int, BlockVariant> getCustomBlockVariants()
     {
         return _customBlockVariants;
-    }
-
-
-
-
-
-    [SerializeField] private GameObject blockButtonFab;
-    [SerializeField] private float fabWidth;
-    private static Transform spawnedBlockButton;
-    public static void moveBlockButton(Block focused)
-    {
-        if (spawnedBlockButton == null)
-            spawnedBlockButton = Instantiate(singleton.blockButtonFab).transform;
-
-        // position
-        spawnedBlockButton.parent = focused.transform;
-        spawnedBlockButton.localPosition = Vector3.zero;
-        spawnedBlockButton.localRotation = Quaternion.identity;
-        
-        // scale
-        int w = focused.getWidth();
-        int h = focused.getHeight();
-        Vector3 scale = FontManager.lettersAndLinesToVector(w, h);
-        scale *= (1f / singleton.fabWidth);
-
-        scale.z = spawnedBlockButton.localScale.z;
-
-        spawnedBlockButton.localScale = scale;
     }
 
 

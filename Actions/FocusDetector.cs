@@ -10,7 +10,7 @@ public class FocusDetector : MonoBehaviour, IMixedRealityFocusHandler
 
     public void OnFocusEnter(FocusEventData eventData)
     {
-        BlockManager.moveBlockButton(GetComponentInParent<Block>());
+        //BlockManager.moveBlockButton(GetComponentInParent<Block>());
     }
 
     public void OnFocusExit(FocusEventData eventData) { }

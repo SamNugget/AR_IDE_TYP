@@ -30,11 +30,9 @@ public class ClassWindow : FileWindow
                 // split orig block
                 Block splitter = BlockManager.splitBlock(topBlock);
                 // spawn new block
-                topBlock = BlockManager.spawnBlock(0, topBlock, true, _referenceTypeSave.fields[i].fieldBlockS);
+                topBlock = BlockManager.spawnBlock(0, splitter.getSubBlock(1), true, _referenceTypeSave.fields[i].fieldBlockS);
                 // save reference to spawned block
                 _referenceTypeSave.fields[i].fieldBlock = topBlock;
-                // put new block in splitter
-                splitter.replaceSubBlock(topBlock, 1);
             }
         }
 
@@ -49,10 +47,12 @@ public class ClassWindow : FileWindow
 
             for (int i = 1; i < _referenceTypeSave.methods.Count; i++)
             {
+                // split orig block
                 Block splitter = BlockManager.splitBlock(botBlock);
-                botBlock = BlockManager.spawnBlock(0, botBlock, true, _referenceTypeSave.methods[i].methodDeclarationS);
+                // spawn new block
+                botBlock = BlockManager.spawnBlock(0, splitter.getSubBlock(1), true, _referenceTypeSave.methods[i].methodDeclarationS);
+                // save reference to spawned block
                 _referenceTypeSave.methods[i].methodDeclaration = botBlock;
-                splitter.replaceSubBlock(botBlock, 1);
             }
         }
 

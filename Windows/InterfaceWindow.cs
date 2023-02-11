@@ -14,7 +14,7 @@ public class InterfaceWindow : FileWindow
         masterBlock.initialise(BlockManager.getBlockVariantIndex("Method Block"));
 
         // load the method declarations
-        Block methodBlock = masterBlock.getSubBlock(1);
+        Block methodBlock = masterBlock.getSubBlock(0);
         if (_referenceTypeSave.methods.Count == 0)
             BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Place Method"), methodBlock);
         else

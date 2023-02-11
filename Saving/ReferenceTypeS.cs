@@ -7,13 +7,15 @@ public class ReferenceTypeS
     // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types
 
     // only class and interface in this implementation
-    // NOTE: I have chosen to have interface and class together as one
-    // so the user can easily switch between the two, and there is no
-    // loss of fields should they revert back from interface to class
+    // saved as the same class for saving/loading simplicity
+
+    // TODO: why am I saving path?
     public string path;
 
     public string name;
     public bool isClass;
+
+    public bool locked;
 
     // bool opened
     // float[] position
@@ -21,22 +23,28 @@ public class ReferenceTypeS
     public List<FieldS> fields;
     public List<MethodS> methods;
 
-    public ReferenceTypeS(string path, string name)
+    public ReferenceTypeS(string path, string name, bool isClass)
     {
         this.path = path;
         this.name = name;
+        this.isClass = isClass;
+        
+        this.locked = false;
 
-        isClass = true;
-        fields = new List<FieldS>();
         methods = new List<MethodS>();
+        if (!isClass) return;
+
+        fields = new List<FieldS>();
     }
 
     public void save()
     {
-        foreach (FieldS f in fields)
-            f.save();
         foreach (MethodS m in methods)
             m.save();
+        if (!isClass) return;
+
+        foreach (FieldS f in fields)
+            f.save();
     }
 
     public string getCode()
@@ -122,9 +130,9 @@ public class ReferenceTypeS
 
 
 
-    public bool cycleReferenceType()
+    /*public bool cycleReferenceType()
     {
         isClass = !isClass;
         return isClass;
-    }
+    }*/
 }

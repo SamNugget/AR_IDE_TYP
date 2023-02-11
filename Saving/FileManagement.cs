@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UCompile;
 
 namespace FileManagement
 {
@@ -47,9 +48,9 @@ namespace FileManagement
 
 
 
-        private static bool prettyPrint = false;
+        private static bool prettyPrint = true;
 
-        private static Workspace activeWorkspace = null;
+        public static Workspace activeWorkspace = null;
 
         public static void loadWorkspace(string name)
         {
@@ -57,7 +58,10 @@ namespace FileManagement
 
             // vv allows people to exit and re-enter workspace without reloading
             if (activeWorkspace == null || activeWorkspace.path != workspacePath)
+            {
+                WindowManager.destroyFileWindows();
                 activeWorkspace = new Workspace(workspacePath);
+            }
         }
         
 
@@ -72,9 +76,9 @@ namespace FileManagement
             return activeWorkspace.saveSourceFile(name);
         }
 
-        public static ReferenceTypeS createSourceFile(string name)
+        public static ReferenceTypeS createSourceFile(string name, bool isClass)
         {
-            return activeWorkspace.createSourceFile(name);
+            return activeWorkspace.createSourceFile(name, isClass);
         }
 
         public static bool saveAllFiles()
@@ -96,6 +100,58 @@ namespace FileManagement
 
 
 
+        public static ReferenceTypeS loadSourceFile(string path)
+        {
+            if (!File.Exists(path))
+            {
+                Debug.Log("Path does not exist " + path);
+                return null;
+            }
+
+            try
+            {
+                using (StreamReader r = new StreamReader(path))
+                {
+                    string json = r.ReadToEnd();
+                    ReferenceTypeS sourceFile = JsonUtility.FromJson<ReferenceTypeS>(json);
+                    return sourceFile;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Issue with the formatting of text file " + path);
+                return null;
+            }
+        }
+
+        public static string loadSourceCode(ReferenceTypeS rTS)
+        {
+            string path = rTS.path + '/' + rTS.name + ".cs";
+            if (!File.Exists(path))
+            {
+                Debug.Log("Code file " + rTS.name + ".cs does not exist");
+                return null;
+            }
+
+            try
+            {
+                using (StreamReader r = new StreamReader(path))
+                {
+                    string code = r.ReadToEnd();
+                    return code;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Issue reading code " + rTS.name + ".cs");
+                return null;
+            }
+        }
+
+
+
+
+
         public class Workspace
         {
             public string path;
@@ -105,6 +161,27 @@ namespace FileManagement
             {
                 this.path = path;
                 findSourceFiles();
+
+                if (_sourceFiles.Count == 0) // if this is a new workspace
+                {
+                    // create the example cube class
+                    try
+                    {
+                        string name = "Cube";
+
+                        // JSON
+                        string json = CompilationHelper.singleton.cubeJSON;
+                        ReferenceTypeS rTS = JsonUtility.FromJson<ReferenceTypeS>(json);
+                        rTS.path = path + '/' + name;
+                        _sourceFiles.Add(name, rTS);
+
+                        // TODO: CS automatically?
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Log("Issue with the formatting of cube json or cs");
+                    }
+                }
             }
 
             public void findSourceFiles()
@@ -124,7 +201,7 @@ namespace FileManagement
                             if (f != null)
                             {
                                 _sourceFiles.Add(f.name, f);
-                                Debug.Log("Loaded source file " + Path.GetFileName(file)); // TEMP
+                                //Debug.Log("Loaded source file " + Path.GetFileName(file));
                             }
                             break;
                         }
@@ -133,30 +210,6 @@ namespace FileManagement
             }
 
 
-
-            public static ReferenceTypeS loadSourceFile(string path)
-            {
-                if (!File.Exists(path))
-                {
-                    Debug.Log("Path does not exist " + path);
-                    return null;
-                }
-
-                try
-                {
-                    using (StreamReader r = new StreamReader(path))
-                    {
-                        string json = r.ReadToEnd();
-                        ReferenceTypeS sourceFile = JsonUtility.FromJson<ReferenceTypeS>(json);
-                        return sourceFile;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.Log("Issue with the formatting of text file " + path);
-                    return null;
-                }
-            }
 
             public bool saveSourceFile(string name)
             {
@@ -191,7 +244,14 @@ namespace FileManagement
                 }
             }
 
-            public ReferenceTypeS createSourceFile(string name)
+            public bool saveAllFiles()
+            {
+                foreach (string file in _sourceFiles.Keys)
+                    if (!saveSourceFile(file)) return false;
+                return true;
+            }
+
+            public ReferenceTypeS createSourceFile(string name, bool isClass)
             {
                 if (_sourceFiles.ContainsKey(name))
                 {
@@ -199,16 +259,9 @@ namespace FileManagement
                     return null;
                 }
 
-                ReferenceTypeS rTS = new ReferenceTypeS(path + '/' + name, name);
+                ReferenceTypeS rTS = new ReferenceTypeS(path + '/' + name, name, isClass);
                 _sourceFiles.Add(name, rTS);
                 return rTS;
-            }
-
-            public bool saveAllFiles()
-            {
-                foreach (string file in _sourceFiles.Keys)
-                    if (!saveSourceFile(file)) return false;
-                return true;
             }
 
 
@@ -275,6 +328,96 @@ namespace FileManagement
                 Debug.Log("Err making directory " + path);
                 return null;
             }
+        }
+    }
+
+    public static class CompilationManager
+    {
+        private static CSScriptEngineRemote _engineRemote;
+        private static CSScriptEngineRemote engineRemote
+        {
+            get
+            {
+                if (_engineRemote == null)
+                {
+                    _engineRemote = new CSScriptEngineRemote();
+                    _engineRemote.AddOnCompilationFailedHandler(OnCompilationFailedAction);
+                    _engineRemote.AddOnCompilationSucceededHandler(OnCompilationSucceededAction);
+                }
+                return _engineRemote;
+            }
+        }
+
+        private static int compiled;
+        private static int failed;
+        private static bool code;
+
+        public static void CompileActiveWorkspace()
+        {
+            code = false;
+            compiled = 0; failed = 0;
+
+            // disposes of current remote AppDomain, if it exists
+            UnloadDomain();
+
+            // loads new remote AppDomain
+            engineRemote.LoadDomain();
+            engineRemote.AddUsings("using UnityEngine;");
+
+
+            Dictionary<string, ReferenceTypeS>.ValueCollection values = FileManager.activeWorkspace._sourceFiles.Values;
+            foreach (ReferenceTypeS rTS in values)
+            {
+                string code = FileManager.loadSourceCode(rTS);
+                if (code == null) continue;
+
+                engineRemote.CompileType(rTS.name, code);
+            }
+
+
+            string summary = "Compiled: " + compiled + " \nFailed: " + failed;
+            WindowManager.getWindowWithComponent<ToolsWindow>().setTitleTextMessage(summary, true);
+        }
+
+        public static void ExecuteClasslessCode(string classlessCode)
+        {
+            code = true;
+
+            Window w = WindowManager.getWindowWithComponent<CodeWindow>();
+
+            try
+            {
+                engineRemote.CompileCode(classlessCode);
+                w.setTitleTextMessage("", false);
+            }
+            catch
+            {
+                w.setTitleTextMessage("ERR", true);
+            }
+        }
+
+        public static void UnloadDomain()
+        {
+            engineRemote.UnloadDomain();
+        }
+
+        private static void OnCompilationFailedAction(CompilerOutput output)
+        {
+            for (int i = 0; i < output.Errors.Count; i++)
+                Debug.Log(output.Errors[i]);
+            for (int i = 0; i < output.Warnings.Count; i++)
+                Debug.Log(output.Warnings[i]);
+
+            if (!code) failed++;
+        }
+
+        private static void OnCompilationSucceededAction(CompilerOutput output)
+        {
+            for (int i = 0; i < output.Warnings.Count; i++)
+                Debug.Log(output.Warnings[i]);
+
+            if (code) engineRemote.ExecuteLastCompiledCode();
+            else compiled++;
         }
     }
 }

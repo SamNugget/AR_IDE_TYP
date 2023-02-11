@@ -59,8 +59,8 @@ public class Window : MonoBehaviour
     private static float topBarHeight = 0.05f;
 
     [Header("Visuals")]
-    [SerializeField] private bool simpleView;
-    public void setSimpleView(bool simple)
+    public bool simpleView;
+    public virtual void setSimpleView(bool simple)
     {
         if (simpleView == simple) return;
         simpleView = simple;

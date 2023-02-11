@@ -33,7 +33,11 @@ public abstract class FileWindow : EditWindow
     public void saveFile()
     {
         if (FileManager.saveSourceFile(_referenceTypeSave.name))
+        {
             setTitleTextMessage("", false);
+            Window w = WindowManager.getWindowWithComponent<ToolsWindow>();
+            w.setTitleTextMessage("Saved " + _referenceTypeSave.name, true);
+        }
     }
 
 
@@ -43,5 +47,12 @@ public abstract class FileWindow : EditWindow
     protected override void setSimpleText()
     {
         simpleText.GetComponent<TextMeshPro>().text = (_referenceTypeSave.isClass ? "<u>Class</u>\n" : "<u>Interface</u>\n") + _referenceTypeSave.name;
+    }
+
+    public override void setSimpleView(bool simple)
+    {
+        base.setSimpleView(simple);
+
+        if (!simple) BlockManager.lastMaster = masterBlock;
     }
 }

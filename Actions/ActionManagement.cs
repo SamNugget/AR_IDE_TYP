@@ -19,6 +19,8 @@ namespace ActionManagement
 
         // TOOLS
         public readonly static char SAVE_CODE = 'S';
+        public readonly static char COMPILE = 'c';
+        public readonly static char CODE = 'l';
 
         // WINDOW STUFF
         public readonly static char OPEN_WORKSPACE = 'W';
@@ -155,6 +157,8 @@ namespace ActionManagement
             actions.Add(NAME_VARIABLE, new NameVariable());
 
             actions.Add(SAVE_CODE, new SaveCode());
+            actions.Add(COMPILE, new Compile());
+            actions.Add(CODE, new ClasslessCode());
 
             actions.Add(OPEN_WORKSPACE, new OpenWorkspace());
             actions.Add(CREATE_WORKSPACE, new CreateWorkspace());
@@ -371,7 +375,7 @@ namespace ActionManagement
 
             BlockManager.spawnBlock(0, toReplace, false);
             // enable only blocks that can be deleted
-            master.enableLeafBlocks();
+            master.enableLeafBlocks(true);
         }
 
         public override void onSelect(object data)
@@ -410,7 +414,7 @@ namespace ActionManagement
 
             // if splitting method or field, insert new method/field line
             string blockName = toSplit.getBlockVariant().getName();
-            if (blockName == "Field" || blockName == "Method")
+            if (blockName == "Field" || blockName == "Method" || blockName == "Interface Method")
                 BlockManager.spawnBlock(BlockManager.getBlockVariantIndex(blockName), splitter.getSubBlock(1));
 
             splitter.setSpecialChildBlock(BlockManager.getBlockVariantIndex("Insert Line"), true);
@@ -522,7 +526,7 @@ namespace ActionManagement
             if (blockName == "Place Variable")
             {
                 // spawn a variable block (splittable with insert line)
-                b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Variable"), clicked, false);
+                b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("VariableH"), clicked, false);
                 emptyNameBlockIndex = 1;
             }
             else if (blockName == "Place Field")
@@ -533,9 +537,17 @@ namespace ActionManagement
             }
             else if (blockName == "Place Method")
             {
-                b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
+                if (clicked.getParent().getBlockVariant().getName() == "Window Block") // true in class window
+                {
+                    b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Method"), clicked, false);
+                    emptyNameBlockIndex = 2;
+                }
+                else
+                {
+                    b = BlockManager.spawnBlock(BlockManager.getBlockVariantIndex("Interface Method"), clicked, false);
+                    emptyNameBlockIndex = 1;
+                }
                 BlockManager.lastFileWindow.referenceTypeSave.addMethod(b);
-                emptyNameBlockIndex = 3;
             }
             else
             {
@@ -685,7 +697,7 @@ namespace ActionManagement
         {
             if (!success) return;
 
-            ReferenceTypeS rTS = FileManager.createSourceFile(name);
+            ReferenceTypeS rTS = FileManager.createSourceFile(name, isClass);
             if (rTS == null) return;
 
             Window spawned = WindowManager.spawnFileWindow(isClass);
@@ -712,6 +724,26 @@ namespace ActionManagement
             WindowManager.spawnWorkspacesWindow();
 
             // TODO: make user choose whether to save
+        }
+    }
+
+
+
+    public class Compile : Act
+    {
+        public void onCall(object data)
+        {
+            CompilationManager.CompileActiveWorkspace();
+        }
+    }
+
+
+
+    public class ClasslessCode : Act
+    {
+        public void onCall(object data)
+        {
+            WindowManager.spawnCodeWindow();
         }
     }
 }

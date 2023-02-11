@@ -54,7 +54,7 @@ public class MethodS
                     bodyText = BlockManager.blockSaveToText(bS);
             }
 
-            result += "\n{\n" + bodyText + "\n}\n";
+            result += "{\n" + bodyText + "\n}\n";
         }
         else
         {

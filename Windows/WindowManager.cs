@@ -23,7 +23,6 @@ public class WindowManager : MonoBehaviour
     {
         foreach (Window window in windows)
         {
-            // check at top level
             Transform w = window.transform;
             if (w.GetComponent<T>() != null)
                 return window;
@@ -37,19 +36,9 @@ public class WindowManager : MonoBehaviour
 
         foreach (Window window in windows)
         {
-            // check at top level
             Transform w = window.transform;
             if (w.GetComponent<T>() != null)
-            {
                 found.Add(window);
-                continue;
-            }
-            // check children
-            foreach (Transform child in w)
-            {
-                if (child.GetComponent<T>() != null)
-                    found.Add(window);
-            }
         }
         return found;
     }
@@ -76,7 +65,7 @@ public class WindowManager : MonoBehaviour
     {
         List<Window> blockWindows = getWindowsWithComponent<EditWindow>();
         foreach (Window w in blockWindows)
-            ((EditWindow)w).masterBlock.enableLeafBlocks();
+            ((EditWindow)w).masterBlock.enableLeafBlocks(true);
     }
 
 
@@ -184,7 +173,7 @@ public class WindowManager : MonoBehaviour
 
 
     [SerializeField] private GameObject toolsWindowFab;
-    private static WindowSettings toolsWS = new WindowSettings(new Vector3(-0.31f, -0.2f, -0.01f));
+    private static WindowSettings toolsWS = new WindowSettings(new Vector3(0f, 0.15f, 0f));
     [SerializeField] private GameObject blockSelectWindowFab;
     private static WindowSettings blockWS = new WindowSettings(new Vector3(-0.31f, 0f, 0f));
     public static void moveEditToolWindows()
@@ -201,6 +190,14 @@ public class WindowManager : MonoBehaviour
         return replaceChildSoleWindow<TextEntryWindow>(singleton.textEntryWindowFab, ref textEntryWS, parent);
     }
 
+    [SerializeField] private GameObject codeWindowFab;
+    public static void spawnCodeWindow()
+    {
+        Window toolsWindow = getWindowWithComponent<ToolsWindow>();
+
+        spawnWindow(singleton.codeWindowFab, new Vector3(0f, 0f, -0.1f), null, toolsWindow.transform);
+    }
+
 
 
 
@@ -210,6 +207,7 @@ public class WindowManager : MonoBehaviour
     {
         if (parentOverride == null)
             parentOverride = singleton.transform;
+
         Transform newWindow = Instantiate(prefab, parentOverride).transform;
 
         if (toCopy == null)
@@ -218,7 +216,9 @@ public class WindowManager : MonoBehaviour
         {
             offset = toCopy.right * offset.x + toCopy.up * offset.y + toCopy.forward * offset.z;
             newWindow.localPosition = toCopy.localPosition + offset;
-            newWindow.localRotation = toCopy.localRotation;
+            Vector3 newRot = toCopy.localRotation.eulerAngles;
+            newRot.z = 0f; // z is locked
+            newWindow.localRotation = Quaternion.Euler(newRot);
         }
 
         Window w = newWindow.GetComponent<Window>();
@@ -317,6 +317,20 @@ public class WindowManager : MonoBehaviour
 
         windows.Remove(window);
         Destroy(window.gameObject);
+    }
+
+    public static void destroyFileWindows()
+    {
+        Window wsW = getWindowWithComponent<WorkspacesButtonManager>();
+
+        // destroy all except workspaces window
+        for (int i = windows.Count - 1; i >= 0; i--)
+        {
+            if (windows[i] == null)
+                windows.RemoveAt(i);
+            else if (windows[i] != wsW)
+                destroyWindow(windows[i]);
+        }
     }
 
     /*public static void stopAllFollowing(Window caller)

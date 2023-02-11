@@ -40,6 +40,8 @@ public class Block : MonoBehaviour
                 bVI = BlockManager.getBlockVariantIndex("Place Variable"); // special [+] block
             else if (subBlockTypes[i] == BlockManager.OPEN_METHOD)
                 bVI = BlockManager.getBlockVariantIndex("Open Method"); // special [O] block
+            else if (subBlockTypes[i] == BlockManager.NEW_NAME)
+                bVI = BlockManager.getBlockVariantIndex("Custom");
 
             subBlockSaves[i] = new BlockSave(bVI, null);
         }
@@ -63,7 +65,7 @@ public class Block : MonoBehaviour
         string blockType = blockVariant.getBlockType();
         // if insert line, set collider enabled
         if (blockType == BlockManager.INSERT_LINE)
-            GetComponentInChildren<Collider>().enabled = true;
+            setBlockButtonActive(true);
         // if name required, call naming action
         if (blockType == BlockManager.NEW_NAME)
             ActionManager.callAction(ActionManager.NAME_VARIABLE, new Block[] { getParent(), this });
@@ -99,8 +101,15 @@ public class Block : MonoBehaviour
 
     public void drawBlock(bool master)
     {
+        int i = 0;
         foreach (Block subBlock in subBlocks)
-            subBlock.drawBlock(false);
+        {
+            if (subBlock == null)
+                Debug.Log(blockVariant.getName() + " null child at pos " + i);
+            else
+                subBlock.drawBlock(false);
+            i++;
+        }
 
         populateTextBox();
         resizeBlock();
@@ -261,16 +270,20 @@ public class Block : MonoBehaviour
 
         if (mask == null)
         {
-            GetComponentInChildren<Collider>().enabled = enabled;
+            setBlockButtonActive(enabled);
             return;
         }
 
         bool contains = mask.Contains(blockVariant.getBlockType());
-        Collider collider = GetComponentInChildren<Collider>();
         if (invert ? !contains : contains)
-            collider.enabled = enabled;
+            setBlockButtonActive(enabled);
         else
-            collider.enabled = !enabled;
+            setBlockButtonActive(!enabled);
+    }
+
+    private void setBlockButtonActive(bool active)
+    {
+        transform.GetChild(0).Find("BlockButton").gameObject.SetActive(active);
     }
 
     public void setSpecialChildBlock(int variantIndex, bool enabled)
@@ -328,15 +341,25 @@ public class Block : MonoBehaviour
         return null;
     }
 
-    public bool enableLeafBlocks() // returns hasSubBlocks
+    public bool enableLeafBlocks(bool master) // returns isDeleteable
     {
+        if (master)
+        {
+            FileWindow fileWindow = transform.GetComponentInParent<FileWindow>();
+            if (fileWindow != null && fileWindow.referenceTypeSave.locked == true)
+            {
+                setColliderEnabled(false);
+                return false;
+            }
+        }
+
         bool isDeleteable = blockVariant.getDeleteable();
 
         foreach (Block subBlock in subBlocks)
-            if (subBlock.enableLeafBlocks())
+            if (subBlock.enableLeafBlocks(false))
                 isDeleteable = false;
 
-        GetComponentInChildren<Collider>().enabled = isDeleteable;
+        setBlockButtonActive(isDeleteable);
         return isDeleteable;
     }
 
@@ -376,5 +399,10 @@ public class Block : MonoBehaviour
             return getParent().getMasterBlock();
         }
         return this;
+    }
+
+    public void pressed()
+    {
+        ActionManager.callAction(ActionManager.BLOCK_CLICKED, GetComponentInParent<Block>());
     }
 }
